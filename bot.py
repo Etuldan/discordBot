@@ -14,18 +14,28 @@ PDSEnabled = True
 LogsEnabled = False
 BedsEnabled = True
 FormationEnabled = True
+AdminCommandsEnable = True
 
 TOKEN = "NzQ3NDY0NDMxNTk1OTQ2MDY3.X0PQfw.0r36FHAmbrpsUaiZ6-BAsqL0czk"
 
 
 
+#channelHome = 747468276417822781
 channelHome = 749634630751092786
+#channelIdLogs = 0
 channelIdLogs = 0
+#channelIdPDS = 748240490243162173
 channelIdPDS = 751099674336952460
 
+#roleIdService = 748244174062485586
 roleIdService = 751100153372344440
+#roleIdDispatch = 750780216019779724
 roleIdDispatch = 751100287967559711
+#roleIdAdmin = [751756550074400828, 751756600783405146]
+roleIdAdmin = [362366754359476225, 436994235904819200]
 
+#formationChannel = "Test"
+formationChannel = "AUTRE"
 
 databaseFile = "data.json"
 fontFile = "Calibri Regular.ttf"
@@ -34,7 +44,7 @@ client = discord.Client()
 message_head = 0
 message_dispatch = 0
 channelPDS = 0
-messages = []
+messagesBeds = []
 
 beds = []
 
@@ -181,20 +191,25 @@ async def on_ready():
     global beds
     global roleService
     global roleDispatch
+    global roleAdmin
     global channelPDS
     global channel
     
     print(f'{client.user} has connected to Discord!')
 
-    if(BedsEnabled or PDSEnabled):
+    if(BedsEnabled or PDSEnabled or AdminCommandsEnable):
         channel = client.get_channel(channelHome)
         await channel.purge()
     if(PDSEnabled):
         channelPDS = client.get_channel(channelIdPDS)
-        roleService = channelPDS.guild.get_role(roleIdService)
-        roleDispatch = channelPDS.guild.get_role(roleIdDispatch)
+        roleService = channel.guild.get_role(roleIdService)
+        roleDispatch = channel.guild.get_role(roleIdDispatch)
         activity = discord.Activity(type = discord.ActivityType.watching, name = "0 en service")
         await client.change_presence(activity=activity)
+    if(AdminCommandsEnable):
+        roleAdmin = []
+        for tempRole in roleIdAdmin:
+            roleAdmin.append(channel.guild.get_role(tempRole))
 
     if(PDSEnabled):
         await sendEmbed("000.0", "000.0")
@@ -231,21 +246,27 @@ async def on_disconnect():
 
 @client.event
 async def on_message(message):
-    global messages
+    global messagesBeds
     global beds
     
     if message.author == client.user:
         return
-    if message.channel.id != channelHome:
-        return
-        
-    await message.delete()
     
-    if BedsEnabled and message.content.startswith("+") == True:
+    home = False
+    if message.channel.id == channelHome:
+        await message.delete()
+        home = True
+    
+    admin = False
+    for tempRole in roleAdmin:
+        if tempRole in message.author.roles:
+            admin = True
+    
+    if home and BedsEnabled and message.content.startswith("+") == True:
         response = message.content[1:].strip()
         temp = await message.channel.send(response)
         tempMessage = MessageBed(temp)
-        messages.append(tempMessage)
+        messagesBeds.append(tempMessage)
         try:
             await temp.add_reaction("🗑️")
             loc = []
@@ -258,17 +279,17 @@ async def on_message(message):
             await temp.add_reaction("✅")
             await asyncio.sleep(30)
             await temp.delete()
-            messages.remove(tempMessage)
+            messagesBeds.remove(tempMessage)
         except discord.errors.NotFound:
             pass
-    elif PDSEnabled and message.content.startswith("*") == True:
+    elif home and PDSEnabled and message.content.startswith("*") == True:
         array = message.content[1:].strip().split()
         if(len(array) >= 3):
             await sendEmbed(array[0], array[1], array[2])
         elif(len(array) >= 2):
             await sendEmbed(array[0], array[1])
-    elif FormationEnabled and message.content.startswith("!") == True:
-        category = discord.utils.get(message.channel.guild.categories, name="AUTRE")
+    elif home and FormationEnabled and admin and message.content.startswith("!") == True:
+        category = discord.utils.get(message.channel.guild.categories, name=formationChannel)
         now = datetime.now()
         current_time = now.strftime("%d/%m/%Y")
         temp = await message.channel.guild.create_text_channel("hrp-"+message.content[1:].strip(), category = category, topic = "RENTRÉ AU LSMS LE : " + current_time)        
@@ -300,8 +321,16 @@ async def on_message(message):
         await temp.send(" - Permis moto")
         await temp.send(" - A déjà piloté un hélicopère")
         await temp.send(" - Licence hélicoptère")
-    elif message.content.startswith("-") == True:
-        pass
+    elif not home and admin and message.content.startswith("-") == True:
+        await message.delete()
+        try:
+            number = int(message.content[1:].strip())
+            mgs = []
+            async for singleMessage in message.channel.history(limit=number):
+                mgs.append(singleMessage) 
+            await message.channel.delete_messages(mgs) 
+        except ValueError:
+            pass
 
 async def removeBed(slot):
     for bed in beds:
@@ -327,7 +356,7 @@ async def on_reaction_remove(reaction, user):
    
 @client.event
 async def on_reaction_add(reaction, user):
-    global messages
+    global messagesBeds
     global message_head
     global message_dispatch
     global beds
@@ -367,7 +396,7 @@ async def on_reaction_add(reaction, user):
         return
 
     if(BedsEnabled):
-        for message in messages:
+        for message in messagesBeds:
             if(message.message.id == reaction.message.id):
                 if(reaction.emoji == "✅"):
                     await reaction.message.delete()
@@ -384,10 +413,10 @@ async def on_reaction_add(reaction, user):
                                     loc = loc + 1
                             beds.insert(loc, info)
                             await updateImage(beds)
-                    messages.remove(message)
+                    messagesBeds.remove(message)
                 elif(reaction.emoji == "🗑️"):
                     await reaction.message.delete()
-                    messages.remove(message)
+                    messagesBeds.remove(message)
                 elif(reaction.emoji == "0\u20E3"):
                     message.bed = 0
                 elif(reaction.emoji == "1\u20E3"):
