@@ -322,10 +322,10 @@ async def on_message(message):
         await temp.send(" - A déjà piloté un hélicopère")
         await temp.send(" - Licence hélicoptère")
     elif not home and admin and message.content.startswith("-") == True:
-        await message.delete()
         try:
             number = int(message.content[1:].strip())
             mgs = []
+            await message.delete()
             async for singleMessage in message.channel.history(limit=number):
                 mgs.append(singleMessage) 
             await message.channel.delete_messages(mgs) 
