@@ -294,7 +294,6 @@ async def on_message(message):
         await updateRadio()
     elif home and PDSEnabled and message.content.startswith("!Event") == True:
         radioEvent = message.content[6:].strip()
-        print(radioEvent)
         if(radioEvent == ""):
             radioEvent = False
         await updateRadio()
