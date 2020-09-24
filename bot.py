@@ -135,11 +135,11 @@ async def updateImage(beds):
             if(bed.bed == '0' or bed.bed == "1" or bed.bed == "8" or bed.bed == "9"):
                 txt=Image.new('RGBA', (500,100), (0, 0, 0, 0))
                 d = ImageDraw.Draw(txt)
-                d.text( (0, 0), bed.patient.replace(" ", "\n"), fill='white', font=font, stroke_width=1, stroke_fill='black')
+                d.text( (0, 0), bed.patient.replace(" ", "\n", 1), fill='white', font=font, stroke_width=1, stroke_fill='black')
                 foreground = txt.rotate(90,  expand=1)
                 image.paste(foreground, (loc[bed.bed][0],-500+loc[bed.bed][1]), foreground)
             else:
-                draw.text(loc[bed.bed], bed.patient.replace(" ", "\n"), fill='white', font=font, stroke_width=1, stroke_fill='black')
+                draw.text(loc[bed.bed], bed.patient.replace(" ", "\n", 1), fill='white', font=font, stroke_width=1, stroke_fill='black')
             if(bed.lspd == True):
                 draw.ellipse((loc[bed.bed][0]-10, loc[bed.bed][1]-10, loc[bed.bed][0]+10, loc[bed.bed][1]+10), fill=(255, 0, 0), outline=(0, 0, 0))
         
