@@ -9,38 +9,28 @@ import asyncio
 import json
 import atexit
 from datetime import datetime
+import configparser
 
 PDSEnabled = True
-LogsEnabled = False
 BedsEnabled = True
 FormationEnabled = True
 AdminCommandsEnable = True
-
-TOKEN = "NzQ3NDY0NDMxNTk1OTQ2MDY3.X0PQfw.0r36FHAmbrpsUaiZ6-BAsqL0czk"
-
-
-
-#channelHome = 747468276417822781
-channelHome = 749634630751092786
-#channelIdLogs = 0
-channelIdLogs = 0
-#channelIdPDS = 748240490243162173
-channelIdPDS = 751099674336952460
-
-#roleIdService = 748244174062485586
-roleIdService = 751100153372344440
-#roleIdDispatch = 750780216019779724
-roleIdDispatch = 751100287967559711
-#roleIdAdmin = [751756550074400828, 751756600783405146]
-roleIdAdmin = [362366754359476225, 436994235904819200]
-
-#formationChannel = "Test"
-formationChannel = "AUTRE"
 
 databaseFile = "data.json"
 fontFile = "Calibri Regular.ttf"
 
 client = discord.Client()
+
+config = configparser.ConfigParser()
+config.read('config.ini')
+channelHome = int(config['Channel']['Home'])
+channelIdPDS = int(config['Channel']['PDS'])
+roleIdService = int(config['Role']['Service'])
+roleIdDispatch = int(config['Role']['Dispatch'])
+roleIdAdmin = config['Role']['Admin']
+formationChannel = int(config['Section']['Formation'])
+TOKEN = config['Discord']['Token']
+
 message_head = 0
 message_dispatch = 0
 channelPDS = 0
@@ -72,7 +62,10 @@ class InfoBed(object):
         self.lspd = lspd
         self.bed = bed
 
-async def sendEmbed(radioLSMS, radioLSPD, radioEvent = False):
+radioLSMS = 000.0
+radioLSPD = 000.0
+radioEvent = False
+async def updateRadio():
     global message_dispatch
 
     embedVar = discord.Embed(color=0x00ff00)
@@ -165,6 +158,10 @@ async def updateImage(beds):
                 pass
 
 async def background_task():
+    global radioLSMS
+    global radioLSPD
+    global radioEvent
+
     await client.wait_until_ready()
     while not client.is_closed():
         await asyncio.sleep(50)
@@ -180,7 +177,10 @@ async def background_task():
                 await message_dispatch.clear_reactions()
                 await message_dispatch.add_reaction("🚑")
                 await message_dispatch.add_reaction("📱")
-                await sendEmbed("000.0", "000.0")
+                radioLSMS = 000.0
+                radioLSPD = 000.0
+                radioEvent = False
+                await updateRadio()
 
 def getReactionByNumber(number):
     return str(number) + "\u20E3"
@@ -208,11 +208,12 @@ async def on_ready():
         await client.change_presence(activity=activity)
     if(AdminCommandsEnable):
         roleAdmin = []
-        for tempRole in roleIdAdmin:
-            roleAdmin.append(channel.guild.get_role(tempRole))
+        tempList  = roleIdAdmin.split(',')
+        for tempRole in tempList:
+            roleAdmin.append(channel.guild.get_role(int(tempRole)))
 
     if(PDSEnabled):
-        await sendEmbed("000.0", "000.0")
+        await updateRadio()
     if(BedsEnabled):
         with open(databaseFile) as json_file:
             data = json.load(json_file)
@@ -248,6 +249,9 @@ async def on_disconnect():
 async def on_message(message):
     global messagesBeds
     global beds
+    global radioLSMS
+    global radioLSPD
+    global radioEvent
     
     if message.author == client.user:
         return
@@ -262,8 +266,8 @@ async def on_message(message):
         if tempRole in message.author.roles:
             admin = True
     
-    if home and BedsEnabled and message.content.startswith("+") == True:
-        response = message.content[1:].strip()
+    if home and BedsEnabled and message.content.startswith("!lit ") == True:
+        response = message.content[5:].strip()
         temp = await message.channel.send(response)
         tempMessage = MessageBed(temp)
         messagesBeds.append(tempMessage)
@@ -282,17 +286,23 @@ async def on_message(message):
             messagesBeds.remove(tempMessage)
         except discord.errors.NotFound:
             pass
-    elif home and PDSEnabled and message.content.startswith("*") == True:
-        array = message.content[1:].strip().split()
-        if(len(array) >= 3):
-            await sendEmbed(array[0], array[1], array[2])
-        elif(len(array) >= 2):
-            await sendEmbed(array[0], array[1])
-    elif home and FormationEnabled and admin and message.content.startswith("!") == True:
-        category = discord.utils.get(message.channel.guild.categories, name=formationChannel)
+    elif home and PDSEnabled and message.content.startswith("!LSMS ") == True:
+        radioLSMS = message.content[6:].strip()
+        await updateRadio()
+    elif home and PDSEnabled and message.content.startswith("!LSPD ") == True:
+        radioLSPD = message.content[6:].strip()
+        await updateRadio()
+    elif home and PDSEnabled and message.content.startswith("!Event") == True:
+        radioEvent = message.content[6:].strip()
+        print(radioEvent)
+        if(radioEvent == ""):
+            radioEvent = False
+        await updateRadio()
+    elif home and FormationEnabled and admin and message.content.startswith("!new ") == True:
+        category = discord.utils.get(message.channel.guild.categories, id=formationChannel)
         now = datetime.now()
         current_time = now.strftime("%d/%m/%Y")
-        temp = await message.channel.guild.create_text_channel("hrp-"+message.content[1:].strip(), category = category, topic = "RENTRÉ AU LSMS LE : " + current_time)        
+        temp = await message.channel.guild.create_text_channel(message.content[5:].strip(), category = category, topic = "RENTRÉ AU LSMS LE : " + current_time)        
         embedVar = discord.Embed(description = "FORMATION PRINCIPALE", color=15158332)
         await temp.send(embed=embedVar)
         await temp.send(" - Appel coma")
@@ -321,9 +331,9 @@ async def on_message(message):
         await temp.send(" - Permis moto")
         await temp.send(" - A déjà piloté un hélicopère")
         await temp.send(" - Licence hélicoptère")
-    elif not home and admin and message.content.startswith("-") == True:
+    elif not home and admin and message.content.startswith("!del ") == True:
         try:
-            number = int(message.content[1:].strip())
+            number = int(message.content[5:].strip())
             mgs = []
             await message.delete()
             async for singleMessage in message.channel.history(limit=number):
