@@ -255,6 +255,9 @@ async def on_message(message):
     
     if message.author == client.user:
         return
+        
+    if message.author.bot == True:
+        return
     
     home = False
     if message.channel.id == channelHome:
