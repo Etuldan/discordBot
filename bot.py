@@ -23,6 +23,7 @@ client = discord.Client()
 
 config = configparser.ConfigParser()
 config.read('config.ini')
+#config.read('config-test.ini')
 channelHome = int(config['Channel']['Home'])
 channelIdPDS = int(config['Channel']['PDS'])
 roleIdService = int(config['Role']['Service'])
