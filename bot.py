@@ -195,7 +195,7 @@ async def on_ready():
     global channelPDS
     global channel
     
-    print(client.user + " has connected to Discord!")
+    print(str(client.user) + " has connected to Discord!")
 
     if(BedsEnabled or PDSEnabled or AdminCommandsEnable):
         channel = client.get_channel(channelHome)
