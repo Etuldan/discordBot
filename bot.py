@@ -166,9 +166,9 @@ async def background_task():
     await client.wait_until_ready()
     while not client.is_closed():
         await asyncio.sleep(50)
+        now = datetime.now().time()
         if(PDSEnabled):
             await setRichPresence()
-            now = datetime.now().time()
             if(now.hour == 6 and now.minute == 0):            
                 for member in channelPDS.guild.members:
                     if roleService in member.roles:
@@ -182,6 +182,9 @@ async def background_task():
                 radioLSPD = 000.0
                 radioEvent = False
                 await updateRadio()
+        if(BedsEnabled):
+            if(now.hour == 6 and now.minute == 0):
+                SaveToFile()
 
 def getReactionByNumber(number):
     return str(number) + "\u20E3"
@@ -225,8 +228,6 @@ async def on_ready():
             await updateImage(beds)
 
 def SaveToFile():
-    global beds
-    
     data = {}
     for bed in beds:
         data[bed.bed] = {}
