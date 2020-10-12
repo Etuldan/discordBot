@@ -187,6 +187,9 @@ async def background_task():
                 radioLSMS = 000.0
                 radioLSPD = 000.0
                 radioEvent = False
+                data = {}
+                with open(databaseRadioFile, 'w') as outfile:
+                    json.dump(data, outfile)
                 await updateRadio()
         if(BedsEnabled):
             if(now.hour == 6 and now.minute == 0):
@@ -223,16 +226,34 @@ async def on_ready():
         roleDispatch = channel.guild.get_role(roleIdDispatch)
         activity = discord.Activity(type = discord.ActivityType.watching, name = "0 en service")
         await client.change_presence(activity=activity)
-    if(AdminCommandsEnable):
+    if(RDVEnabled):
+        channelRDVChir = client.get_channel(channelIdRDVChir)
+        channelRDVPsy = client.get_channel(channelIdRDVPsy)
+        channelRDVHome  = client.get_channel(channelIdRDVHome)
+    if(AdminCommandsEnabled):
         roleAdmin = []
         tempList  = roleIdAdmin.split(',')
         for tempRole in tempList:
             roleAdmin.append(channel.guild.get_role(int(tempRole)))
 
     if(PDSEnabled):
+        with open(databaseRadioFile) as json_file:
+            data = json.load(json_file)
+            try:
+                radioLSMS = data["LSMS"]
+            except KeyError:
+                radioLSMS = 000.0
+            try:
+                radioLSPD = data["LSPD"]
+            except KeyError:
+                radioLSPD = 000.0
+            try:
+                radioEvent = data["Event"]
+            except KeyError:
+                radioEvent = False
         await updateRadio()
     if(BedsEnabled):
-        with open(databaseFile) as json_file:
+        with open(databaseBedFile) as json_file:
             data = json.load(json_file)
             beds = []
             for bed in data:
@@ -240,25 +261,32 @@ async def on_ready():
                 beds.append(info)
             await updateImage(beds)
 
-def SaveToFile():
-    data = {}
-    for bed in beds:
-        data[bed.bed] = {}
-        data[bed.bed]["patient"] = bed.patient
-        data[bed.bed]["lspd"] = bed.lspd
-    
-    with open(databaseFile, 'w') as outfile:
-        json.dump(data, outfile)
 
+def SaveToFile():
+    if BedsEnabled:
+        data = {}
+        for bed in beds:
+            data[bed.bed] = {}
+            data[bed.bed]["patient"] = bed.patient
+            data[bed.bed]["lspd"] = bed.lspd    
+        with open(databaseBedFile, 'w') as outfile:
+            json.dump(data, outfile)
+            
+    if PDSEnabled:
+        data = {}
+        data["LSMS"] = radioLSMS
+        data["LSPD"] = radioLSPD
+        data["Event"] = radioEvent
+        with open(databaseRadioFile, 'w') as outfile:
+            json.dump(data, outfile)
+        
 @atexit.register
 def goodbye():
-    if(BedsEnabled):
-        SaveToFile()
+    SaveToFile()
     
 @client.event
 async def on_disconnect():
-    if(BedsEnabled):
-        SaveToFile()
+    SaveToFile()
 
 @client.event
 async def on_message(message):
@@ -383,6 +411,8 @@ async def on_message(message):
             await message.channel.delete_messages(mgs) 
         except ValueError:
             pass
+    elif home and admin and message.content.startswith("!save"):
+        SaveToFile()
 
 async def removeBed(slot):
     for bed in beds:
