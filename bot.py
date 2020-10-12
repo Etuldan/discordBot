@@ -14,9 +14,11 @@ import configparser
 PDSEnabled = True
 BedsEnabled = True
 FormationEnabled = True
-AdminCommandsEnable = True
+AdminCommandsEnabled = True
+RDVEnabled = False
 
-databaseFile = "data.json"
+databaseBedFile = "data.json"
+databaseRadioFile = "radio.json"
 fontFile = "Calibri Regular.ttf"
 
 client = discord.Client()
@@ -24,8 +26,12 @@ client = discord.Client()
 config = configparser.ConfigParser()
 config.read('config.ini')
 #config.read('config-test.ini')
-channelHome = int(config['Channel']['Home'])
+channelIdHome = int(config['Channel']['Home'])
 channelIdPDS = int(config['Channel']['PDS'])
+if RDVEnabled:
+    channelIdRDVHome = int(config['Channel']['PriseDeRDV'])
+    channelIdRDVChir = int(config['Channel']['RDVChirurgie'])
+    channelIdRDVPsy = int(config['Channel']['RDVPsy'])
 roleIdService = int(config['Role']['Service'])
 roleIdDispatch = int(config['Role']['Dispatch'])
 roleIdAdmin = config['Role']['Admin']
@@ -151,7 +157,7 @@ async def updateImage(beds):
         except AttributeError:
             pass
 
-        message_head = await client.get_channel(channelHome).send(file=discord.File(fp=image_binary, filename='lit.png'))
+        message_head = await client.get_channel(channelIdHome).send(file=discord.File(fp=image_binary, filename='lit.png'))
         for bed in beds:
             try:
                 await message_head.add_reaction(getReactionByNumber(bed.bed))
@@ -198,11 +204,18 @@ async def on_ready():
     global roleAdmin
     global channelPDS
     global channel
-    
+    global channelRDVChir
+    global channelRDVPsy
+    global channelRDVHome
+
+    global radioLSMS
+    global radioLSPD
+    global radioEvent
+
     print(str(client.user) + " has connected to Discord!")
 
-    if(BedsEnabled or PDSEnabled or AdminCommandsEnable):
-        channel = client.get_channel(channelHome)
+    if(BedsEnabled or PDSEnabled or AdminCommandsEnabled):
+        channel = client.get_channel(channelIdHome)
         await channel.purge()
     if(PDSEnabled):
         channelPDS = client.get_channel(channelIdPDS)
@@ -258,20 +271,25 @@ async def on_message(message):
     if message.author == client.user:
         return
         
-    if message.author.bot == True:
+    if message.author.bot:
         return
     
     home = False
-    if message.channel.id == channelHome:
+    if message.channel.id == channelIdHome:
         await message.delete()
         home = True
-    
+
+    rdv = False
+    if RDVEnabled and message.channel.id == channelIdRDVHome:
+        await message.delete()
+        rdv = True
+
     admin = False
     for tempRole in roleAdmin:
         if tempRole in message.author.roles:
             admin = True
     
-    if home and BedsEnabled and message.content.startswith("!lit ") == True:
+    if home and BedsEnabled and message.content.startswith("!lit "):
         response = message.content[5:].strip()
         temp = await message.channel.send(response)
         tempMessage = MessageBed(temp)
@@ -291,18 +309,38 @@ async def on_message(message):
             messagesBeds.remove(tempMessage)
         except discord.errors.NotFound:
             pass
-    elif home and PDSEnabled and message.content.startswith("!LSMS ") == True:
+    elif home and PDSEnabled and message.content.startswith("!LSMS "):
         radioLSMS = message.content[6:].strip()
         await updateRadio()
-    elif home and PDSEnabled and message.content.startswith("!LSPD ") == True:
+    elif home and PDSEnabled and message.content.startswith("!LSPD "):
         radioLSPD = message.content[6:].strip()
         await updateRadio()
-    elif home and PDSEnabled and message.content.startswith("!Event") == True:
+    elif home and PDSEnabled and message.content.startswith("!Event"):
         radioEvent = message.content[6:].strip()
         if(radioEvent == ""):
             radioEvent = False
         await updateRadio()
-    elif home and FormationEnabled and admin and message.content.startswith("!new ") == True:
+    elif rdv and RDVEnabled and message.content.startswith("!rdv "):
+        command = message.content[5:].strip().split("555")
+        patient = command[0].strip()
+        phone = "555" + command[1].split(" ", 1)[0].strip()
+        reason = command[1].split(" ", 1)[1].strip()
+
+        embedVar = discord.Embed(color=0x00ff00)
+        embedVar.set_author(name="Prise de RDV", icon_url="https://cdn.discordapp.com/attachments/637303563701321728/692506630499336192/lsms_sceau_1.png")
+        embedVar.add_field(name="Patient", value=patient, inline=True)
+        embedVar.add_field(name="Téléphone", value=phone, inline=True)
+        embedVar.add_field(name="Raison", value=reason, inline=False)
+        messageRDV = await channelRDVHome.send(embed=embedVar)
+        try:
+            await messageRDV.add_reaction("🇵")
+            await messageRDV.add_reaction("🇨")
+            await asyncio.sleep(30)
+            await messageRDV.delete()
+        except discord.errors.NotFound:
+            pass
+
+    elif home and FormationEnabled and admin and message.content.startswith("!new "):
         category = discord.utils.get(message.channel.guild.categories, id=formationChannel)
         now = datetime.now()
         current_time = now.strftime("%d/%m/%Y")
@@ -358,7 +396,7 @@ async def on_reaction_remove(reaction, user):
     
     if(user == reaction.message.author):
         return   
-    if reaction.message.channel.id != channelHome:
+    if reaction.message.channel.id != channelIdHome:
         return
     
     if(PDSEnabled):
@@ -377,7 +415,7 @@ async def on_reaction_add(reaction, user):
     
     if(user == reaction.message.author):
         return   
-    if reaction.message.channel.id != channelHome:
+    if reaction.message.channel.id != channelIdHome and reaction.message.channel.id != channelIdRDVHome:
         return
 
     if(BedsEnabled and reaction.message.id == message_head.id):
@@ -408,6 +446,14 @@ async def on_reaction_add(reaction, user):
         elif(reaction.emoji == "📱"):
             await setDispatch(user, True)
         return
+    elif(RDVEnabled and reaction.message.channel.id == channelIdRDVHome):
+        if(reaction.emoji == "🇵"):
+            await channelRDVPsy.send(embed=reaction.message.embeds[0])
+        elif(reaction.emoji == "🇨"):
+            await channelRDVChir.send(embed=reaction.message.embeds[0])
+        await reaction.message.delete()
+        return
+
 
     if(BedsEnabled):
         for message in messagesBeds:
