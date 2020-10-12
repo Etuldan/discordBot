@@ -237,30 +237,38 @@ async def on_ready():
             roleAdmin.append(channel.guild.get_role(int(tempRole)))
 
     if(PDSEnabled):
-        with open(databaseRadioFile) as json_file:
-            data = json.load(json_file)
-            try:
-                radioLSMS = data["LSMS"]
-            except KeyError:
-                radioLSMS = 000.0
-            try:
-                radioLSPD = data["LSPD"]
-            except KeyError:
-                radioLSPD = 000.0
-            try:
-                radioEvent = data["Event"]
-            except KeyError:
-                radioEvent = False
+        try:
+            with open(databaseRadioFile, 'r') as json_file:
+                data = json.load(json_file)
+                try:
+                    radioLSMS = data["LSMS"]
+                except KeyError:
+                    radioLSMS = 000.0
+                try:
+                    radioLSPD = data["LSPD"]
+                except KeyError:
+                    radioLSPD = 000.0
+                try:
+                    radioEvent = data["Event"]
+                except KeyError:
+                    radioEvent = False
+        except (json.decoder.JSONDecodeError, FileNotFoundError):
+            radioLSMS = 000.0
+            radioLSPD = 000.0
+            radioEvent = False
+            
         await updateRadio()
     if(BedsEnabled):
-        with open(databaseBedFile) as json_file:
-            data = json.load(json_file)
+        try:
             beds = []
-            for bed in data:
-                info = InfoBed(data[bed]["patient"], bed, data[bed]["lspd"])
-                beds.append(info)
-            await updateImage(beds)
-
+            with open(databaseBedFile, 'r') as json_file:
+                data = json.load(json_file)
+                for bed in data:
+                    info = InfoBed(data[bed]["patient"], bed, data[bed]["lspd"])
+                    beds.append(info)
+        except (json.decoder.JSONDecodeError, FileNotFoundError):
+            pass
+        await updateImage(beds)
 
 def SaveToFile():
     if BedsEnabled:
