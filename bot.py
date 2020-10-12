@@ -84,7 +84,7 @@ async def updateRadio():
         await message_dispatch.edit(embed=embedVar)
 
 async def setService(user, service = True, automatic = False):
-    if service == True:
+    if service:
         color = 0x00ff00
         name = "Prise de Service"
         await user.add_roles(roleService)
@@ -92,7 +92,7 @@ async def setService(user, service = True, automatic = False):
         color = 0xff0000
         name = "Fin de Service"
         await user.remove_roles(roleService)
-    if automatic == True:
+    if automatic:
         name = name + " (par la Centrale)"
 
     embedVar = discord.Embed(description = user.display_name, color=color)
@@ -103,13 +103,13 @@ async def setService(user, service = True, automatic = False):
     await setRichPresence()
     
 async def setDispatch(user, dispatch = False, automatic = False):
-    if dispatch == True:
+    if dispatch:
         name = "Prise de Dispatch"
         await user.add_roles(roleDispatch)
     else:
         name = "Dispatch Relaché"
         await user.remove_roles(roleDispatch)
-    if automatic == True:
+    if automatic:
         name = name + " (par la Centrale)"
 
     embedVar = discord.Embed(description = user.display_name, color=12370112)
@@ -141,7 +141,7 @@ async def updateImage(beds):
                 image.paste(foreground, (loc[bed.bed][0],-500+loc[bed.bed][1]), foreground)
             else:
                 draw.text(loc[bed.bed], bed.patient.replace(" ", "\n", 1), fill='white', font=font, stroke_width=1, stroke_fill='black')
-            if(bed.lspd == True):
+            if(bed.lspd):
                 draw.ellipse((loc[bed.bed][0]-10, loc[bed.bed][1]-10, loc[bed.bed][0]+10, loc[bed.bed][1]+10), fill=(255, 0, 0), outline=(0, 0, 0))
         
         image.save(image_binary, 'PNG')
@@ -335,7 +335,7 @@ async def on_message(message):
         await temp.send(" - Permis moto")
         await temp.send(" - A déjà piloté un hélicopère")
         await temp.send(" - Licence hélicoptère")
-    elif not home and admin and message.content.startswith("!del ") == True:
+    elif not home and admin and message.content.startswith("!del "):
         try:
             number = int(message.content[5:].strip())
             mgs = []
