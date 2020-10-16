@@ -15,7 +15,7 @@ PDSEnabled = True
 BedsEnabled = True
 FormationEnabled = True
 AdminCommandsEnabled = True
-RDVEnabled = False
+RDVEnabled = True
 
 databaseBedFile = "data.json"
 databaseRadioFile = "radio.json"
@@ -29,9 +29,10 @@ config.read('config.ini')
 channelIdHome = int(config['Channel']['Home'])
 channelIdPDS = int(config['Channel']['PDS'])
 if RDVEnabled:
-    channelIdRDVHome = int(config['Channel']['PriseDeRDV'])
     channelIdRDVChir = int(config['Channel']['RDVChirurgie'])
+    channelIdRDVChirArchive = int(config['Channel']['RDVChirurgieArchive'])
     channelIdRDVPsy = int(config['Channel']['RDVPsy'])
+    channelIdRDVPsyArchive = int(config['Channel']['RDVPsyArchive'])
 roleIdService = int(config['Role']['Service'])
 roleIdDispatch = int(config['Role']['Dispatch'])
 roleIdAdmin = config['Role']['Admin']
@@ -208,9 +209,9 @@ async def on_ready():
     global channelPDS
     global channel
     global channelRDVChir
+    global channelRDVChirArchive
     global channelRDVPsy
-    global channelRDVHome
-
+    global channelRDVPsyArchive
     global radioLSMS
     global radioLSPD
     global radioEvent
@@ -228,8 +229,9 @@ async def on_ready():
         await client.change_presence(activity=activity)
     if(RDVEnabled):
         channelRDVChir = client.get_channel(channelIdRDVChir)
+        channelRDVChirArchive = client.get_channel(channelIdRDVChirArchive)
         channelRDVPsy = client.get_channel(channelIdRDVPsy)
-        channelRDVHome  = client.get_channel(channelIdRDVHome)
+        channelRDVPsyArchive = client.get_channel(channelIdRDVPsyArchive)
     if(AdminCommandsEnabled):
         roleAdmin = []
         tempList  = roleIdAdmin.split(',')
@@ -315,11 +317,6 @@ async def on_message(message):
         await message.delete()
         home = True
 
-    rdv = False
-    if RDVEnabled and message.channel.id == channelIdRDVHome:
-        await message.delete()
-        rdv = True
-
     admin = False
     for tempRole in roleAdmin:
         if tempRole in message.author.roles:
@@ -356,24 +353,24 @@ async def on_message(message):
         if(radioEvent == ""):
             radioEvent = False
         await updateRadio()
-    elif rdv and RDVEnabled and message.content.startswith("!rdv "):
-        command = message.content[5:].strip().split("555")
-        patient = command[0].strip()
-        phone = "555" + command[1].split(" ", 1)[0].strip()
-        reason = command[1].split(" ", 1)[1].strip()
-
-        embedVar = discord.Embed(color=0x00ff00)
-        embedVar.set_author(name="Prise de RDV", icon_url="https://cdn.discordapp.com/attachments/637303563701321728/692506630499336192/lsms_sceau_1.png")
-        embedVar.add_field(name="Patient", value=patient, inline=True)
-        embedVar.add_field(name="Téléphone", value=phone, inline=True)
-        embedVar.add_field(name="Raison", value=reason, inline=False)
-        messageRDV = await channelRDVHome.send(embed=embedVar)
+    elif home and RDVEnabled and message.content.startswith("!rdv "):
         try:
+            command = message.content[5:].strip().split("555")
+            patient = command[0].strip()
+            phone = "555" + command[1].split(" ", 1)[0].strip()
+            reason = command[1].split(" ", 1)[1].strip()
+    
+            embedVar = discord.Embed(color=0x00ff00)
+            embedVar.set_author(name="Prise de RDV", icon_url="https://cdn.discordapp.com/attachments/637303563701321728/692506630499336192/lsms_sceau_1.png")
+            embedVar.add_field(name="Patient", value=patient, inline=True)
+            embedVar.add_field(name="Téléphone", value=phone, inline=True)
+            embedVar.add_field(name="Raison", value=reason, inline=False)
+            messageRDV = await message.channel.send(embed=embedVar)
             await messageRDV.add_reaction("🇵")
             await messageRDV.add_reaction("🇨")
             await asyncio.sleep(30)
             await messageRDV.delete()
-        except discord.errors.NotFound:
+        except (discord.errors.NotFound, IndexError):
             pass
 
     elif home and FormationEnabled and admin and message.content.startswith("!new "):
@@ -453,7 +450,7 @@ async def on_reaction_add(reaction, user):
     
     if(user == reaction.message.author):
         return   
-    if reaction.message.channel.id != channelIdHome and reaction.message.channel.id != channelIdRDVHome:
+    if reaction.message.channel.id != channelIdHome and reaction.message.channel.id != channelIdRDVChir and reaction.message.channel.id != channelIdRDVPsy:
         return
 
     if(BedsEnabled and reaction.message.id == message_head.id):
@@ -484,14 +481,27 @@ async def on_reaction_add(reaction, user):
         elif(reaction.emoji == "📱"):
             await setDispatch(user, True)
         return
-    elif(RDVEnabled and reaction.message.channel.id == channelIdRDVHome):
+    elif(RDVEnabled and reaction.message.channel.id == channelIdHome):
         if(reaction.emoji == "🇵"):
             await channelRDVPsy.send(embed=reaction.message.embeds[0])
         elif(reaction.emoji == "🇨"):
             await channelRDVChir.send(embed=reaction.message.embeds[0])
         await reaction.message.delete()
         return
-
+    elif(RDVEnabled and reaction.message.channel.id == channelIdRDVChir):
+        if(reaction.emoji == "✅"):
+            embedVar = reaction.message.embeds[0]
+            embedVar.set_footer(text=user.display_name)
+            await channelRDVChirArchive.send(embed=embedVar)
+            await reaction.message.delete()
+        return
+    elif(RDVEnabled and reaction.message.channel.id == channelIdRDVPsy):
+        if(reaction.emoji == "✅"):
+            embedVar = reaction.message.embeds[0]
+            embedVar.set_footer(text=user.display_name)
+            await channelRDVPsyArchive.send(embed=embedVar)
+            await reaction.message.delete()
+        return
 
     if(BedsEnabled):
         for message in messagesBeds:
