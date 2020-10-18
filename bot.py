@@ -39,6 +39,12 @@ roleIdAdmin = config['Role']['Admin']
 formationChannel = int(config['Section']['Formation'])
 TOKEN = config['Discord']['Token']
 
+COLOR_RED = 0xff0000
+COLOR_GREEN = 0x00ff00
+COLOR_LIGHT_GREY = 12370112
+COLOR_DARK_GOLD = 12745742
+COLOR_DEFAULT = 0
+
 message_head = 0
 message_dispatch = 0
 channelPDS = 0
@@ -76,7 +82,7 @@ radioEvent = False
 async def updateRadio():
     global message_dispatch
 
-    embedVar = discord.Embed(color=0x00ff00)
+    embedVar = discord.Embed(color=COLOR_GREEN)
     embedVar.set_author(name="Gestion des Prises de Service", icon_url="https://cdn.discordapp.com/attachments/637303563701321728/692506630499336192/lsms_sceau_1.png")
     embedVar.set_thumbnail(url = "https://i.postimg.cc/qRmhx1qR/radio.png")
     embedVar.add_field(name="💉", value=radioLSMS, inline=True)
@@ -92,11 +98,11 @@ async def updateRadio():
 
 async def setService(user, service = True, automatic = False):
     if service:
-        color = 0x00ff00
+        color = COLOR_GREEN
         name = "Prise de Service"
         await user.add_roles(roleService)
     else:
-        color = 0xff0000
+        color = COLOR_RED
         name = "Fin de Service"
         await user.remove_roles(roleService)
     if automatic:
@@ -119,7 +125,7 @@ async def setDispatch(user, dispatch = False, automatic = False):
     if automatic:
         name = name + " (par la Centrale)"
 
-    embedVar = discord.Embed(description = user.display_name, color=12370112)
+    embedVar = discord.Embed(description = user.display_name, color=COLOR_LIGHT_GREY)
     embedVar.set_author(name=name, icon_url="https://cdn.discordapp.com/attachments/637303563701321728/692506630499336192/lsms_sceau_1.png")
     embedVar.timestamp = datetime.utcnow()
     await channelPDS.send(embed=embedVar)
@@ -360,7 +366,7 @@ async def on_message(message):
             phone = "555" + command[1].split(" ", 1)[0].strip()
             reason = command[1].split(" ", 1)[1].strip()
     
-            embedVar = discord.Embed(color=0x00ff00)
+            embedVar = discord.Embed(color=COLOR_GREEN)
             embedVar.set_author(name="Prise de RDV", icon_url="https://cdn.discordapp.com/attachments/637303563701321728/692506630499336192/lsms_sceau_1.png")
             embedVar.add_field(name="Patient", value=patient, inline=True)
             embedVar.add_field(name="Téléphone", value=phone, inline=True)
@@ -378,7 +384,7 @@ async def on_message(message):
         now = datetime.now()
         current_time = now.strftime("%d/%m/%Y")
         temp = await message.channel.guild.create_text_channel(message.content[5:].strip(), category = category, topic = "RENTRÉ AU LSMS LE : " + current_time)        
-        embedVar = discord.Embed(description = "FORMATION PRINCIPALE", color=15158332)
+        embedVar = discord.Embed(description = "FORMATION PRINCIPALE", color=COLOR_LIGHT_GREY)
         await temp.send(embed=embedVar)
         await temp.send(" - Appel coma")
         await temp.send(" - Conduite d'urgence")
@@ -389,7 +395,7 @@ async def on_message(message):
         await temp.send(" - Opérations")
         await temp.send(" - Pompier")
         await temp.send(" - Soin des maladies")
-        embedVar = discord.Embed(description = "FORMATION SECONDAIRE", color=12745742)
+        embedVar = discord.Embed(description = "FORMATION SECONDAIRE", color=COLOR_DARK_GOLD)
         await temp.send(embed=embedVar)
         await temp.send(" - Conduite sur terrain accidenté")
         await temp.send(" - Diplôme")
@@ -398,7 +404,7 @@ async def on_message(message):
         await temp.send(" - Procédure fédérale")
         await temp.send(" - Rédaction de rapport")
         await temp.send(" - Visite médicale")
-        embedVar = discord.Embed(description = "FORMATION SUPPLEMENTAIRES", color=0)
+        embedVar = discord.Embed(description = "FORMATION SUPPLEMENTAIRES", color=COLOR_DEFAULT)
         await temp.send(embed=embedVar)
         await temp.send(" - Intégrité")
         await temp.send(" - Permis voiture")
@@ -494,11 +500,23 @@ async def on_reaction_add(reaction, user):
             embedVar.set_footer(text=user.display_name)
             await channelRDVChirArchive.send(embed=embedVar)
             await reaction.message.delete()
+        elif(reaction.emoji == "❌"):
+            embedVar = reaction.message.embeds[0]
+            embedVar.set_footer(text=user.display_name)
+            embedVar.color=COLOR_RED
+            await channelRDVChirArchive.send(embed=embedVar)
+            await reaction.message.delete()
         return
     elif(RDVEnabled and reaction.message.channel.id == channelIdRDVPsy):
         if(reaction.emoji == "✅"):
             embedVar = reaction.message.embeds[0]
             embedVar.set_footer(text=user.display_name)
+            await channelRDVPsyArchive.send(embed=embedVar)
+            await reaction.message.delete()
+        elif(reaction.emoji == "❌"):
+            embedVar = reaction.message.embeds[0]
+            embedVar.set_footer(text=user.display_name)
+            embedVar.color=COLOR_RED
             await channelRDVPsyArchive.send(embed=embedVar)
             await reaction.message.delete()
         return
