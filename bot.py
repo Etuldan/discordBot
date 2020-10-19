@@ -490,10 +490,10 @@ async def on_reaction_add(reaction, user):
     elif(RDVEnabled and reaction.message.channel.id == channelIdHome):
         if(reaction.emoji == "🇵"):
             await channelRDVPsy.send(embed=reaction.message.embeds[0])
+            await reaction.message.delete()
         elif(reaction.emoji == "🇨"):
             await channelRDVChir.send(embed=reaction.message.embeds[0])
-        await reaction.message.delete()
-        return
+            await reaction.message.delete()
     elif(RDVEnabled and reaction.message.channel.id == channelIdRDVChir):
         if(reaction.emoji == "✅"):
             embedVar = reaction.message.embeds[0]
