@@ -33,6 +33,8 @@ if RDVEnabled:
     channelIdRDVChirArchive = int(config['Channel']['RDVChirurgieArchive'])
     channelIdRDVPsy = int(config['Channel']['RDVPsy'])
     channelIdRDVPsyArchive = int(config['Channel']['RDVPsyArchive'])
+    channelIdRDVF1S = int(config['Channel']['RDVF1S'])
+    channelIdRDVF1SArchive = int(config['Channel']['RDVF1SArchive'])
 roleIdService = int(config['Role']['Service'])
 roleIdDispatch = int(config['Role']['Dispatch'])
 roleIdAdmin = config['Role']['Admin']
@@ -221,6 +223,9 @@ async def on_ready():
     global radioLSMS
     global radioLSPD
     global radioEvent
+    global emojiPsy
+    global emojiChir
+    global emojiF1S
 
     print(str(client.user) + " has connected to Discord!")
 
@@ -238,6 +243,11 @@ async def on_ready():
         channelRDVChirArchive = client.get_channel(channelIdRDVChirArchive)
         channelRDVPsy = client.get_channel(channelIdRDVPsy)
         channelRDVPsyArchive = client.get_channel(channelIdRDVPsyArchive)
+        channelRDVF1S = client.get_channel(channelIdRDVF1S)
+        channelRDVF1SArchive = client.get_channel(channelIdRDVF1SArchive)
+        emojiPsy = discord.utils.get(channelRDVChir.guild.emojis, name='psy')
+        emojiChir = discord.utils.get(channelRDVChir.guild.emojis, name='chir')
+        emojiF1S = discord.utils.get(channelRDVChir.guild.emojis, name='F1S')
     if(AdminCommandsEnabled):
         roleAdmin = []
         tempList  = roleIdAdmin.split(',')
@@ -372,8 +382,9 @@ async def on_message(message):
             embedVar.add_field(name="Téléphone", value=phone, inline=True)
             embedVar.add_field(name="Raison", value=reason, inline=False)
             messageRDV = await message.channel.send(embed=embedVar)
-            await messageRDV.add_reaction("🇵")
-            await messageRDV.add_reaction("🇨")
+            await messageRDV.add_reaction(emojiPsy)
+            await messageRDV.add_reaction(emojiChir)
+            await messageRDV.add_reaction(emojiF1S)
             await asyncio.sleep(30)
             await messageRDV.delete()
         except (discord.errors.NotFound, IndexError):
@@ -488,11 +499,14 @@ async def on_reaction_add(reaction, user):
             await setDispatch(user, True)
         return
     elif(RDVEnabled and reaction.message.channel.id == channelIdHome):
-        if(reaction.emoji == "🇵"):
+        if(reaction.emoji == emojiPsy):
             await channelRDVPsy.send(embed=reaction.message.embeds[0])
             await reaction.message.delete()
-        elif(reaction.emoji == "🇨"):
+        elif(reaction.emoji == emojiChir):
             await channelRDVChir.send(embed=reaction.message.embeds[0])
+            await reaction.message.delete()
+        elif(reaction.emoji == emojiF1S):
+            await channelRDVF1S.send(embed=reaction.message.embeds[0])
             await reaction.message.delete()
     elif(RDVEnabled and reaction.message.channel.id == channelIdRDVChir):
         if(reaction.emoji == "✅"):
@@ -518,6 +532,19 @@ async def on_reaction_add(reaction, user):
             embedVar.set_footer(text=user.display_name)
             embedVar.color=COLOR_RED
             await channelRDVPsyArchive.send(embed=embedVar)
+            await reaction.message.delete()
+        return
+    elif(RDVEnabled and reaction.message.channel.id == channelIdRDVF1S):
+        if(reaction.emoji == "✅"):
+            embedVar = reaction.message.embeds[0]
+            embedVar.set_footer(text=user.display_name)
+            await channelRDVF1SArchive.send(embed=embedVar)
+            await reaction.message.delete()
+        elif(reaction.emoji == "❌"):
+            embedVar = reaction.message.embeds[0]
+            embedVar.set_footer(text=user.display_name)
+            embedVar.color=COLOR_RED
+            await channelRDVF1SArchive.send(embed=embedVar)
             await reaction.message.delete()
         return
 
