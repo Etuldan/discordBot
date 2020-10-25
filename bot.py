@@ -87,9 +87,9 @@ class Bot(discord.Client):
                 await self.setRichPresence()
                 if(now.hour == 6 and now.minute == 0):            
                     for member in self.channelPDS.guild.members:
-                        if roleService in member.roles:
+                        if self.roleService in member.roles:
                             await self.setService(member, False, True)
-                        if roleDispatch in member.roles:
+                        if self.roleDispatch in member.roles:
                             await self.setDispatch(member, False, True)
                     await self.message_dispatch.clear_reactions()
                     await self.message_dispatch.add_reaction("🚑")
