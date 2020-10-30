@@ -14,6 +14,9 @@ import configparser
 DB_BED = "data.json"
 DB_RADIO = "radio.json"
 
+IMG_LSMS_SCEAU = "https://cdn.discordapp.com/attachments/637303563701321728/692506630499336192/lsms_sceau_1.png"
+IMG_RADIO = "https://i.postimg.cc/qRmhx1qR/radio.png"
+
 COLOR_RED = 15158332
 COLOR_GREEN = 0x00ff00
 COLOR_LIGHT_GREY = 12370112
@@ -164,7 +167,7 @@ class Bot(discord.Client):
                 reason = command[1].split(" ", 1)[1].strip()
         
                 embedVar = discord.Embed(color=COLOR_GREEN)
-                embedVar.set_author(name="Prise de RDV", icon_url="https://cdn.discordapp.com/attachments/637303563701321728/692506630499336192/lsms_sceau_1.png")
+                embedVar.set_author(name="Prise de RDV", icon_url=IMG_LSMS_SCEAU)
                 embedVar.add_field(name="Patient", value=patient, inline=True)
                 embedVar.add_field(name="Téléphone", value=phone, inline=True)
                 embedVar.add_field(name="Raison", value=reason, inline=False)
@@ -462,8 +465,8 @@ class Bot(discord.Client):
     
     async def updateRadio(self):
         embedVar = discord.Embed(color=COLOR_GREEN)
-        embedVar.set_author(name="Gestion des Prises de Service", icon_url="https://cdn.discordapp.com/attachments/637303563701321728/692506630499336192/lsms_sceau_1.png")
-        embedVar.set_thumbnail(url = "https://i.postimg.cc/qRmhx1qR/radio.png")
+        embedVar.set_author(name="Gestion des Prises de Service", icon_url=IMG_LSMS_SCEAU)
+        embedVar.set_thumbnail(url = IMG_RADIO)
         embedVar.add_field(name="💉", value=self.radioLSMS, inline=True)
         embedVar.add_field(name="👮", value=self.radioLSPD, inline=True)
         if(self.radioEvent != False):
@@ -489,7 +492,7 @@ class Bot(discord.Client):
     
         embedVar = discord.Embed(description = user.display_name, color=color)
         embedVar.timestamp = datetime.utcnow()
-        embedVar.set_author(name=name, icon_url="https://cdn.discordapp.com/attachments/637303563701321728/692506630499336192/lsms_sceau_1.png")
+        embedVar.set_author(name=name, icon_url=IMG_LSMS_SCEAU)
         await self.channelPDS.send(embed=embedVar)
     
         await self.setRichPresence()
@@ -505,7 +508,7 @@ class Bot(discord.Client):
             name = name + " (par la Centrale)"
     
         embedVar = discord.Embed(description = user.display_name, color=COLOR_LIGHT_GREY)
-        embedVar.set_author(name=name, icon_url="https://cdn.discordapp.com/attachments/637303563701321728/692506630499336192/lsms_sceau_1.png")
+        embedVar.set_author(name=name, icon_url=IMG_LSMS_SCEAU)
         embedVar.timestamp = datetime.utcnow()
         await self.channelPDS.send(embed=embedVar)
 
