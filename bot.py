@@ -213,7 +213,7 @@ class Bot(discord.Client):
             await temp.send(" - Permis voiture")
             await temp.send(" - Permis poids lourd")
             await temp.send(" - Permis moto")
-            await temp.send(" - A déjà piloté un hélicopère")
+            await temp.send(" - A déjà piloté un hélicoptère")
             await temp.send(" - Licence hélicoptère")
         elif not home and admin and message.content.startswith("!del "):
             try:
