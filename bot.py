@@ -171,6 +171,7 @@ class Bot(discord.Client):
                 embedVar.add_field(name="Patient", value=patient, inline=True)
                 embedVar.add_field(name="Téléphone", value=phone, inline=True)
                 embedVar.add_field(name="Raison", value=reason, inline=False)
+                embedVar.set_footer(text=message.author.display_name)
                 messageRDV = await message.channel.send(embed=embedVar)
                 await messageRDV.add_reaction("🇨")
                 await messageRDV.add_reaction("🇵")
