@@ -248,9 +248,6 @@ class Bot(discord.Client):
             self.channelRDVPsyArchive = self.client.get_channel(self.channelIdRDVPsyArchive)
             self.channelRDVF1S = self.client.get_channel(self.channelIdRDVF1S)
             self.channelRDVF1SArchive = self.client.get_channel(self.channelIdRDVF1SArchive)
-            #self.emojiPsy = discord.utils.get(self.channelRDVChir.guild.emojis, name='psy')
-            #self.emojiChir = discord.utils.get(self.channelRDVChir.guild.emojis, name='chir')
-            #self.emojiF1S = discord.utils.get(self.channelRDVChir.guild.emojis, name='F1S')
         if(self.AdminCommandsEnabled):
             self.roleAdmin = []
             tempList  = self.roleIdAdmin.split(',')
