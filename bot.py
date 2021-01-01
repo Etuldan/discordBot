@@ -1,6 +1,10 @@
 # bot.py
 
 import discord
+import discord_slash
+from discord_slash import SlashCommand
+from discord_slash import SlashContext
+
 import io
 from PIL import Image
 from PIL import ImageFont
@@ -24,16 +28,18 @@ COLOR_DARK_GOLD = 12745742
 COLOR_DEFAULT = 0
 
 ARRAY_BEDS = {}
-ARRAY_BEDS['0'] = (110, 260)
-ARRAY_BEDS['1'] = (470, 260)
-ARRAY_BEDS['2'] = (95, 325)
-ARRAY_BEDS['3'] = (410, 325)
-ARRAY_BEDS['4'] = (95, 470)
-ARRAY_BEDS['5'] = (410, 470)
-ARRAY_BEDS['6'] = (95, 610)
-ARRAY_BEDS['7'] = (410, 610)
-ARRAY_BEDS['8'] = (710, 550)
-ARRAY_BEDS['9'] = (970, 550)
+ARRAY_BEDS[0] = (110, 260)
+ARRAY_BEDS[1] = (470, 260)
+ARRAY_BEDS[2] = (95, 325)
+ARRAY_BEDS[3] = (410, 325)
+ARRAY_BEDS[4] = (95, 470)
+ARRAY_BEDS[5] = (410, 470)
+ARRAY_BEDS[6] = (95, 610)
+ARRAY_BEDS[7] = (410, 610)
+ARRAY_BEDS[8] = (710, 550)
+ARRAY_BEDS[9] = (970, 550)
+
+slash = None
         
 class Bot(discord.Client):
     PDSEnabled = True
@@ -45,14 +51,15 @@ class Bot(discord.Client):
     message_head = 0
     message_dispatch = 0
     channelPDS = 0
-    messagesBeds = []
 
     radioLSMS = 000.0
     radioLSPD = 000.0
-    radioEvent = False
+    radioEvent = 0
     beds = []
 
     def __init__(self):
+        global slash
+        
         config = configparser.ConfigParser()
         config.read('config.ini')
         self.channelIdHome = int(config['Channel']['Home'])
@@ -67,11 +74,14 @@ class Bot(discord.Client):
         self.roleIdService = int(config['Role']['Service'])
         self.roleIdDispatch = int(config['Role']['Dispatch'])
         self.roleIdAdmin = config['Role']['Admin']
+        self.roleIdLSMS = int(config['Role']['LSMS'])
         self.formationChannel = int(config['Section']['Formation'])
-        token = config['Discord']['Token']
-        
-        self.client = discord.Client()
-        
+        self.token = config['Discord']['Token']
+
+        intents = discord.Intents.all()
+        self.client = discord.Client(intents=intents)       
+        slash = SlashCommand(self.client, auto_register = True)
+       
         self.on_ready = self.client.event(self.on_ready)
         self.on_disconnect = self.client.event(self.on_disconnect)
         self.on_message = self.client.event(self.on_message)
@@ -79,8 +89,7 @@ class Bot(discord.Client):
         self.on_raw_reaction_remove = self.client.event(self.on_raw_reaction_remove)
 
         self.client.loop.create_task(self.background_task())
-        self.client.run(token)
-
+           
     async def background_task(self):
         await self.client.wait_until_ready()
         while not self.client.is_closed():
@@ -118,119 +127,16 @@ class Bot(discord.Client):
         if message.author.bot:
             return
         
-        home = False
         if message.channel.id == self.channelIdHome:
             await message.delete()
-            home = True
-    
-        admin = False
-        for tempRole in self.roleAdmin:
-            if tempRole in message.author.roles:
-                admin = True
-        
-        if home and self.BedsEnabled and message.content.startswith("!lit "):
-            response = message.content[5:].strip()
-            temp = await message.channel.send(response)
-            tempMessage = MessageBed(temp)
-            self.messagesBeds.append(tempMessage)
-            try:
-                await temp.add_reaction("🗑️")
-                temploc = []
-                for bed in self.beds:
-                    temploc.append(bed.bed)
-                for x in range(0,10):
-                    if not str(x) in temploc:
-                        await temp.add_reaction(self.getReactionByNumber(x))
-                await temp.add_reaction("👮")
-                await temp.add_reaction("✅")
-                await asyncio.sleep(30)
-                await temp.delete()
-                self.messagesBeds.remove(tempMessage)
-            except discord.errors.NotFound:
-                pass
-        elif home and self.PDSEnabled and message.content.startswith("!LSMS "):
-            self.radioLSMS = message.content[6:].strip()
-            await self.updateRadio()
-        elif home and self.PDSEnabled and message.content.startswith("!LSPD "):
-            self.radioLSPD = message.content[6:].strip()
-            await self.updateRadio()
-        elif home and self.PDSEnabled and message.content.startswith("!Event"):
-            self.radioEvent = message.content[6:].strip()
-            if(self.radioEvent == ""):
-                self.radioEvent = False
-            await self.updateRadio()
-        elif home and self.RDVEnabled and message.content.startswith("!rdv "):
-            try:
-                command = message.content[5:].strip().split("555")
-                patient = command[0].strip()
-                phone = "555" + command[1].split(" ", 1)[0].strip()
-                reason = command[1].split(" ", 1)[1].strip()
-        
-                embedVar = discord.Embed(color=COLOR_GREEN)
-                embedVar.set_author(name="Prise de RDV", icon_url=IMG_LSMS_SCEAU)
-                embedVar.add_field(name="Patient", value=patient, inline=True)
-                embedVar.add_field(name="Téléphone", value=phone, inline=True)
-                embedVar.add_field(name="Raison", value=reason, inline=False)
-                embedVar.set_footer(text=message.author.display_name)
-                messageRDV = await message.channel.send(embed=embedVar)
-                await messageRDV.add_reaction("🇨")
-                await messageRDV.add_reaction("🇵")
-                await messageRDV.add_reaction("🇫")
-                #await messageRDV.add_reaction(self.emojiPsy)
-                #await messageRDV.add_reaction(self.emojiChir)
-                #await messageRDV.add_reaction(self.emojiF1S)
-                await asyncio.sleep(30)
-                await messageRDV.delete()
-            except (discord.errors.NotFound, IndexError):
-                pass
-        elif home and self.FormationEnabled and admin and message.content.startswith("!new "):
-            category = discord.utils.get(message.channel.guild.categories, id=self.formationChannel)
-            now = datetime.now()
-            current_time = now.strftime("%d/%m/%Y")
-            temp = await message.channel.guild.create_text_channel(message.content[5:].strip(), category = category, topic = "RENTRÉ AU LSMS LE : " + current_time)        
-            embedVar = discord.Embed(description = "FORMATION PRINCIPALE", color=COLOR_RED)
-            await temp.send(embed=embedVar)
-            await temp.send(" - Appel coma")
-            await temp.send(" - Conduite d'urgence")
-            await temp.send(" - Don du sang")
-            await temp.send(" - Gestion des unités X")
-            await temp.send(" - Parachute / Rappel")
-            await temp.send(" - Natation / Plongée")
-            await temp.send(" - Opérations")
-            await temp.send(" - Pompier")
-            await temp.send(" - Soin des maladies")
-            embedVar = discord.Embed(description = "FORMATION SECONDAIRE", color=COLOR_DARK_GOLD)
-            await temp.send(embed=embedVar)
-            await temp.send(" - Conduite sur terrain accidenté")
-            await temp.send(" - Diplôme")
-            await temp.send(" - Exercice Hélico niveau 0")
-            await temp.send(" - Obtention du permis port d'arme")
-            await temp.send(" - Procédure fédérale")
-            await temp.send(" - Rédaction de rapport")
-            await temp.send(" - Visite médicale")
-            embedVar = discord.Embed(description = "FORMATION SUPPLEMENTAIRES", color=COLOR_DEFAULT)
-            await temp.send(embed=embedVar)
-            await temp.send(" - Intégrité")
-            await temp.send(" - Permis voiture")
-            await temp.send(" - Permis poids lourd")
-            await temp.send(" - Permis moto")
-            await temp.send(" - A déjà piloté un hélicoptère")
-            await temp.send(" - Licence hélicoptère")
-        elif not home and admin and message.content.startswith("!del "):
-            try:
-                number = int(message.content[5:].strip())
-                mgs = []
-                await message.delete()
-                async for singleMessage in message.channel.history(limit=number):
-                    mgs.append(singleMessage) 
-                await message.channel.delete_messages(mgs) 
-            except ValueError:
-                pass
-        elif home and admin and message.content.startswith("!save"):
-            self.SaveToFile()
 
     async def on_ready(self):
-        print(str(self.client.user) + " has connected to Discord!")
+        print(str(self.client.user) + " has connected to Discord")
+        print("Bot ID is " + str(self.client.user.id))
+        commands = await discord_slash.utils.manage_commands.get_all_commands(self.client.user.id, self.token, None)
+        print("Available commands :")
+        print(commands)
+        #await discord_slash.utils.manage_commands.remove_slash_command(self.client.user.id, self.token, None, 793813788385869845)
     
         if(self.BedsEnabled or self.PDSEnabled or self.AdminCommandsEnabled):
             self.channelHome = self.client.get_channel(self.channelIdHome)
@@ -253,7 +159,8 @@ class Bot(discord.Client):
             tempList  = self.roleIdAdmin.split(',')
             for tempRole in tempList:
                 self.roleAdmin.append(self.channelHome.guild.get_role(int(tempRole)))
-    
+        self.roleLSMS = self.channelHome.guild.get_role(self.roleIdLSMS)
+
         if(self.PDSEnabled):
             try:
                 with open(DB_RADIO, 'r') as json_file:
@@ -269,11 +176,11 @@ class Bot(discord.Client):
                     try:
                         self.radioEvent = data["Event"]
                     except KeyError:
-                        self.radioEvent = False
+                        self.radioEvent = 0
             except (json.decoder.JSONDecodeError, FileNotFoundError):
                 self.radioLSMS = 000.0
                 self.radioLSPD = 000.0
-                self.radioEvent = False
+                self.radioEvent = 0
                 
             await self.updateRadio()
         if(self.BedsEnabled):
@@ -282,25 +189,14 @@ class Bot(discord.Client):
                 with open(DB_BED, 'r') as json_file:
                     data = json.load(json_file)
                     for bed in data:
-                        info = InfoBed(data[bed]["patient"], bed, data[bed]["lspd"])
+                        info = InfoBed(data[bed]["patient"], int(bed), data[bed]["lspd"])
                         self.beds.append(info)
             except (json.decoder.JSONDecodeError, FileNotFoundError):
                 pass
             await self.updateImage() 
-
-    async def on_reaction_remove(self, reaction, user):
-        if(user == reaction.message.author):
-            return   
-        if reaction.message.channel.id != self.channelIdHome:
-            return
-        
-        if(self.PDSEnabled):
-            if(reaction.message.id == self.message_dispatch.id):
-                if(reaction.emoji == "🚑"):
-                    await self.setService(user, False)
-                elif(reaction.emoji == "📱"):
-                    await self.setDispatch(user, False)
-                    
+            
+        print(str(self.client.user) + " is now ready!")
+                  
     async def on_raw_reaction_remove(self, payload):
         if payload.channel_id != self.channelIdHome:
             return
@@ -364,16 +260,6 @@ class Bot(discord.Client):
                 elif(payload.emoji.name == "📱"):
                     await self.setDispatch(user, True)
                 return
-            elif(self.RDVEnabled and payload.channel_id == self.channelIdHome):
-                if(payload.emoji.name == "🇵"):
-                    await self.channelRDVPsy.send(embed=message.embeds[0])
-                    await message.delete()
-                elif(payload.emoji.name == "🇨"):
-                    await self.channelRDVChir.send(embed=message.embeds[0])
-                    await message.delete()
-                elif(payload.emoji.name == "🇫"):
-                    await self.channelRDVF1S.send(embed=message.embeds[0])
-                    await message.delete()
             elif(self.RDVEnabled and payload.channel_id == self.channelIdRDVChir):
                 if(payload.emoji.name == "✅"):
                     embedVar = message.embeds[0]
@@ -414,52 +300,69 @@ class Bot(discord.Client):
                     await message.delete()
                 return
         
-            if(self.BedsEnabled):
-                for messageBed in self.messagesBeds:
-                    if(messageBed.message.id == payload.message_id):
-                        if(payload.emoji.name == "✅"):
-                            await message.delete()
-                            if(messageBed.bed != -1):
-                                info = InfoBed(messageBed.message.content, str(messageBed.bed), messageBed.lspd)
-                                found = False
-                                for bed in self.beds:
-                                    if(bed.bed == str(messageBed.bed)):
-                                        found = True
-                                if(not found):
-                                    tempindex = 0
-                                    for bed in self.beds:
-                                        if int(bed.bed) < messageBed.bed:
-                                            tempindex = tempindex + 1
-                                    self.beds.insert(tempindex, info)
-                                    await self.updateImage()
-                            self.messagesBeds.remove(messageBed)
-                        elif(payload.emoji.name == "🗑️"):
-                            await message.delete()
-                            self.messagesBeds.remove(messageBed)
-                        elif(payload.emoji.name == "0\u20E3"):
-                            messageBed.bed = 0
-                        elif(payload.emoji.name == "1\u20E3"):
-                            messageBed.bed = 1
-                        elif(payload.emoji.name == "2\u20E3"):
-                            messageBed.bed = 2
-                        elif(payload.emoji.name == "3\u20E3"):
-                            messageBed.bed = 3
-                        elif(payload.emoji.name == "4\u20E3"):
-                            messageBed.bed = 4
-                        elif(payload.emoji.name == "5\u20E3"):
-                            messageBed.bed = 5
-                        elif(payload.emoji.name == "6\u20E3"):
-                            messageBed.bed = 6
-                        elif(payload.emoji.name == "7\u20E3"):
-                            messageBed.bed = 7
-                        elif(payload.emoji.name == "8\u20E3"):
-                            messageBed.bed = 8
-                        elif(payload.emoji.name == "9\u20E3"):
-                            messageBed.bed = 9
-                        elif(payload.emoji.name == "👮"):
-                            messageBed.lspd = True
         except discord.errors.NotFound:
             pass
+
+    async def NewMedic(self, context, name):
+        category = discord.utils.get(context.guild.categories, id=self.formationChannel)
+        now = datetime.now()
+        current_time = now.strftime("%d/%m/%Y")
+        temp = await context.guild.create_text_channel(name, category = category, topic = "RENTRÉ AU LSMS LE : " + current_time)        
+        embedVar = discord.Embed(description = "FORMATION PRINCIPALE", color=COLOR_RED)
+        await temp.send(embed=embedVar)
+        await temp.send(" - Appel coma")
+        await temp.send(" - Conduite d'urgence")
+        await temp.send(" - Don du sang")
+        await temp.send(" - Gestion des unités X")
+        await temp.send(" - Parachute / Rappel")
+        await temp.send(" - Natation / Plongée")
+        await temp.send(" - Opérations")
+        await temp.send(" - Pompier")
+        await temp.send(" - Soin des maladies")
+        embedVar = discord.Embed(description = "FORMATION SECONDAIRE", color=COLOR_DARK_GOLD)
+        await temp.send(embed=embedVar)
+        await temp.send(" - Conduite sur terrain accidenté")
+        await temp.send(" - Diplôme")
+        await temp.send(" - Exercice Hélico niveau 0")
+        await temp.send(" - Obtention du permis port d'arme")
+        await temp.send(" - Procédure fédérale")
+        await temp.send(" - Rédaction de rapport")
+        await temp.send(" - Visite médicale")
+        embedVar = discord.Embed(description = "FORMATION SUPPLEMENTAIRES", color=COLOR_DEFAULT)
+        await temp.send(embed=embedVar)
+        await temp.send(" - Intégrité")
+        await temp.send(" - Permis voiture")
+        await temp.send(" - Permis poids lourd")
+        await temp.send(" - Permis moto")
+        await temp.send(" - A déjà piloté un hélicoptère")
+        await temp.send(" - Licence hélicoptère")    
+    
+    async def AddRDV(self, patient, phone, category, reason, medic):
+        embedVar = discord.Embed(color=COLOR_GREEN)
+        embedVar.set_author(name="Prise de RDV", icon_url=IMG_LSMS_SCEAU)
+        embedVar.add_field(name="Patient", value=patient, inline=True)
+        embedVar.add_field(name="Téléphone", value=phone, inline=True)
+        embedVar.add_field(name="Raison", value=reason, inline=False)
+        embedVar.set_footer(text=medic.display_name)        
+        if(category == 0):
+            await self.channelRDVPsy.send(embed=embedVar)
+        elif(category == 1):
+            await self.channelRDVChir.send(embed=embedVar)
+        elif(category == 2):
+            await self.channelRDVF1S.send(embed=embedVar)        
+    
+    async def updateBed(self, infoBed):
+        found = False
+        for bed in self.beds:
+            if(bed.bed == infoBed.bed):
+                found = True
+        if(not found):
+            tempindex = 0
+            for bed in self.beds:
+                if int(bed.bed) < infoBed.bed:
+                    tempindex = tempindex + 1
+            self.beds.insert(tempindex, infoBed)
+            await self.updateImage()
     
     async def updateRadio(self):
         embedVar = discord.Embed(color=COLOR_GREEN)
@@ -467,7 +370,7 @@ class Bot(discord.Client):
         embedVar.set_thumbnail(url = IMG_RADIO)
         embedVar.add_field(name="💉", value=self.radioLSMS, inline=True)
         embedVar.add_field(name="👮", value=self.radioLSPD, inline=True)
-        if(self.radioEvent != False):
+        if(self.radioEvent != "0"):
             embedVar.add_field(name="🏆", value=self.radioEvent, inline=True)
         if self.message_dispatch == 0:
             self.message_dispatch = await self.channelHome.send(embed=embedVar)
@@ -524,7 +427,7 @@ class Bot(discord.Client):
             draw = ImageDraw.Draw(image)
             font = ImageFont.truetype("Calibri Regular.ttf", 45)     
             for bed in self.beds:
-                if(bed.bed == '0' or bed.bed == "1" or bed.bed == "8" or bed.bed == "9"):
+                if(bed.bed == 0 or bed.bed == 1 or bed.bed == 8 or bed.bed == 9):
                     txt=Image.new('RGBA', (500,100), (0, 0, 0, 0))
                     d = ImageDraw.Draw(txt)
                     d.text( (0, 0), bed.patient.replace(" ", "\n", 1), fill='white', font=font, stroke_width=1, stroke_fill='black')
@@ -554,7 +457,7 @@ class Bot(discord.Client):
 
     async def removeBed(self, slot):
         for bed in self.beds:
-            if(bed.bed == str(slot)):
+            if(bed.bed == slot):
                 self.beds.remove(bed)
                 await self.updateImage()
 
@@ -575,6 +478,10 @@ class Bot(discord.Client):
             data["Event"] = self.radioEvent
             with open(DB_RADIO, 'w') as outfile:
                 json.dump(data, outfile)
+                
+    def Run(self):
+        print("Starting bot ...")
+        self.client.run(self.token)
 
 class MessageBed(object):
     def __init__(self, message):
@@ -588,9 +495,136 @@ class InfoBed(object):
         self.lspd = lspd
         self.bed = bed
 
+
 bot = Bot()
 
+@slash.slash(
+    name="radio",
+    description="Change les fréquences radio",
+    options = [{
+        "name": "organisme",
+        "description": "Organisme pour lequel changer la fréquence radio",
+        "type": 4,
+        "required": True,
+        "choices": [{
+            "name": "1-LSMS",
+            "value": 1
+            },{
+            "name": "2-LSPD",
+            "value": 2
+            },{
+            "name": "3-Event",
+            "value": 3}]
+    },{
+        "name": "frequence",
+        "description": "Fréquence radio",
+        "type": 3,
+        "required": True
+    }])
+async def _radio(ctx: SlashContext, organisme: int, frequence: str):
+    if bot.roleLSMS in ctx.author.roles:
+        if(organisme == 1):
+            bot.radioLSMS = frequence
+        elif(organisme == 2):
+            bot.radioLSPD = frequence
+        elif(organisme == 3):
+            bot.radioEvent = frequence        
+        await bot.updateRadio()
     
+@slash.slash(
+    name="lit",
+    description="Place les patients sur les lits",
+    options = [{
+        "name": "nom",
+        "description": "Prénom & Nom du patient",
+        "type": 3,
+        "required": True
+    },{
+        "name": "numero",
+        "description": "Numéro du lit",
+        "type": 4,
+        "required": True
+    },{
+        "name": "lspd",
+        "description": "Surveillance LSPD/LSCS",
+        "type": 4,
+        "choices": [{
+            "name": "Oui",
+            "value": 1
+            },{
+            "name": "Non",
+            "value": 0
+            }]
+    }])
+async def _lit(ctx: SlashContext, nom: str, numero: int, lspd: int=0):
+    if bot.roleLSMS in ctx.author.roles:
+        info = InfoBed(nom, numero, bool(lspd))
+        await bot.updateBed(info)
+    
+@slash.slash(
+    name="save",
+    description="[ADMIN] Sauvegarde avant reboot manuel"
+    )
+async def _save(ctx: SlashContext):
+    for tempRole in bot.roleAdmin:
+        if tempRole in ctx.author.roles:
+            bot.SaveToFile()
+            
+@slash.slash(
+    name="new",
+    description="[ADMIN] Ajoute un nouveau médecin",
+    options = [{
+        "name": "nom",
+        "description": "Prénom & Nom du médecin",
+        "type": 3,
+        "required": True
+    }])
+async def _new(ctx: SlashContext, nom: str):
+    for tempRole in bot.roleAdmin:
+        if tempRole in ctx.author.roles:
+            await bot.NewMedic(ctx, nom)
+            
+@slash.slash(
+    name="rdv",
+    description="Crée une fiche de rendez-vous",
+    options = [{
+        "name": "nom",
+        "description": "Prénom & Nom du patient",
+        "type": 3,
+        "required": True
+    },{
+        "name": "numero",
+        "description": "Numéro de téléphone du patient",
+        "type": 3,
+        "required": True
+    },{
+        "name": "categorie",
+        "description": "Type de rendez-vous",
+        "type": 4,
+        "required": True,
+        "choices": [{
+            "name": "Psychologie",
+            "value": 0
+            },{
+            "name": "Chirurgie",
+            "value": 1
+            },{
+            "name": "Formation 1er Secours",
+            "value": 2
+            }]
+    },{
+        "name": "description",
+        "description": "Besoin du patient",
+        "type": 3,
+        "required": True
+    }])
+async def _rdv(ctx: SlashContext, nom: str, numero: str, categorie: int, description: str ):
+    if bot.roleLSMS in ctx.author.roles:
+        await bot.AddRDV(nom, numero, categorie, description, ctx.author)
+    
+bot.Run()
+
+
 @atexit.register
 def goodbye():
     bot.SaveToFile()
