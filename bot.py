@@ -522,7 +522,14 @@ bot = Bot()
         "required": True
     }])
 async def _radio(ctx: SlashContext, organisme: int, frequence: str):
+    authorized = False
     if bot.roleLSMS in ctx.author.roles:
+        authorized = True
+    for tempRole in bot.roleAdmin:
+        if tempRole in ctx.author.roles:
+           authorized = True
+
+    if authorized:
         if(organisme == 1):
             bot.radioLSMS = frequence
         elif(organisme == 2):
@@ -530,7 +537,7 @@ async def _radio(ctx: SlashContext, organisme: int, frequence: str):
         elif(organisme == 3):
             bot.radioEvent = frequence        
         await bot.updateRadio()
-    
+
 @slash.slash(
     name="lit",
     description="Place les patients sur les lits",
@@ -557,19 +564,30 @@ async def _radio(ctx: SlashContext, organisme: int, frequence: str):
             }]
     }])
 async def _lit(ctx: SlashContext, nom: str, numero: int, lspd: int=0):
+    authorized = False
     if bot.roleLSMS in ctx.author.roles:
+        authorized = True
+    for tempRole in bot.roleAdmin:
+        if tempRole in ctx.author.roles:
+           authorized = True
+
+    if authorized:
         info = InfoBed(nom, numero, bool(lspd))
         await bot.updateBed(info)
-    
+
 @slash.slash(
     name="save",
     description="[ADMIN] Sauvegarde avant reboot manuel"
     )
 async def _save(ctx: SlashContext):
+    authorized = False
     for tempRole in bot.roleAdmin:
         if tempRole in ctx.author.roles:
-            bot.SaveToFile()
-            
+           authorized = True
+
+    if authorized:
+        bot.SaveToFile()
+
 @slash.slash(
     name="new",
     description="[ADMIN] Ajoute un nouveau médecin",
@@ -580,10 +598,14 @@ async def _save(ctx: SlashContext):
         "required": True
     }])
 async def _new(ctx: SlashContext, nom: str):
+    authorized = False
     for tempRole in bot.roleAdmin:
         if tempRole in ctx.author.roles:
-            await bot.NewMedic(ctx, nom)
-            
+           authorized = True
+
+    if authorized:
+        await bot.NewMedic(ctx, nom)
+
 @slash.slash(
     name="rdv",
     description="Crée une fiche de rendez-vous",
@@ -619,9 +641,16 @@ async def _new(ctx: SlashContext, nom: str):
         "required": True
     }])
 async def _rdv(ctx: SlashContext, nom: str, numero: str, categorie: int, description: str ):
+    authorized = False
     if bot.roleLSMS in ctx.author.roles:
+        authorized = True
+    for tempRole in bot.roleAdmin:
+        if tempRole in ctx.author.roles:
+           authorized = True
+
+    if authorized:
         await bot.AddRDV(nom, numero, categorie, description, ctx.author)
-    
+
 bot.Run()
 
 
