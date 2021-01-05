@@ -430,12 +430,10 @@ class Bot(discord.Client):
                 if(bed.bed == 0 or bed.bed == 1 or bed.bed == 8 or bed.bed == 9):
                     txt=Image.new('RGBA', (500,100), (0, 0, 0, 0))
                     d = ImageDraw.Draw(txt)
-                    print("=" + str(bed.bed) + "|" + bed.patient.replace(" ", "\n", 1) + "|")
                     d.text( (0, 0), bed.patient.replace(" ", "\n", 1), fill='white', font=font, stroke_width=1, stroke_fill='black')
                     foreground = txt.rotate(90,  expand=1)
                     image.paste(foreground, (ARRAY_BEDS[bed.bed][0],-500+ARRAY_BEDS[bed.bed][1]), foreground)
                 else:
-                    print("-" + str(bed.bed) + "|" + bed.patient.replace(" ", "\n", 1) + "|")
                     draw.text(ARRAY_BEDS[bed.bed], bed.patient.replace(" ", "\n", 1), fill='white', font=font, stroke_width=1, stroke_fill='black')
                 if(bed.lspd):
                     draw.ellipse((ARRAY_BEDS[bed.bed][0]-10, ARRAY_BEDS[bed.bed][1]-10, ARRAY_BEDS[bed.bed][0]+10, ARRAY_BEDS[bed.bed][1]+10), fill=(255, 0, 0), outline=(0, 0, 0))
@@ -575,7 +573,6 @@ async def _lit(ctx: SlashContext, nom: str, numero: int, lspd: int=0):
 
     if authorized:
         info = InfoBed(nom, numero, bool(lspd))
-        print(nom + "|" + str(numero) + "|" + str(lspd))
         await bot.updateBed(info)
 
 @slash.slash(
