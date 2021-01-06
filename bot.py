@@ -136,7 +136,7 @@ class Bot(discord.Client):
         commands = await discord_slash.utils.manage_commands.get_all_commands(self.client.user.id, self.token, None)
         print("Available commands :")
         print(commands)
-        #await discord_slash.utils.manage_commands.remove_slash_command(self.client.user.id, self.token, None, 793813788385869845)
+        #await discord_slash.utils.manage_commands.remove_slash_command(self.client.user.id, self.token, None, 795578804689043456)
     
         if(self.BedsEnabled or self.PDSEnabled or self.AdminCommandsEnabled):
             self.channelHome = self.client.get_channel(self.channelIdHome)
@@ -344,11 +344,11 @@ class Bot(discord.Client):
         embedVar.add_field(name="Téléphone", value=phone, inline=True)
         embedVar.add_field(name="Raison", value=reason, inline=False)
         embedVar.set_footer(text=medic.display_name)        
-        if(category == 0):
+        if(category == 1):
             await self.channelRDVPsy.send(embed=embedVar)
-        elif(category == 1):
-            await self.channelRDVChir.send(embed=embedVar)
         elif(category == 2):
+            await self.channelRDVChir.send(embed=embedVar)
+        elif(category == 3):
             await self.channelRDVF1S.send(embed=embedVar)        
     
     async def updateBed(self, infoBed):
@@ -626,13 +626,13 @@ async def _new(ctx: SlashContext, nom: str):
         "required": True,
         "choices": [{
             "name": "Psychologie",
-            "value": 0
-            },{
-            "name": "Chirurgie",
             "value": 1
             },{
-            "name": "Formation 1er Secours",
+            "name": "Chirurgie",
             "value": 2
+            },{
+            "name": "Formation 1er Secours",
+            "value": 3
             }]
     },{
         "name": "description",
