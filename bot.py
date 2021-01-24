@@ -73,6 +73,7 @@ class Bot(discord.Client):
             self.channelIdRDVF1SArchive = int(config['Channel']['RDVF1SArchive'])
         self.roleIdService = int(config['Role']['Service'])
         self.roleIdDispatch = int(config['Role']['Dispatch'])
+        self.roleIdAstreinte = int(config['Role']['Astreinte'])
         self.roleIdAdmin = config['Role']['Admin']
         self.roleIdLSMS = int(config['Role']['LSMS'])
         self.formationChannel = int(config['Section']['Formation'])
@@ -103,9 +104,12 @@ class Bot(discord.Client):
                             await self.setService(member, False, True)
                         if self.roleDispatch in member.roles:
                             await self.setDispatch(member, False, True)
+                        if self.roleAstreinte in member.roles:
+                            await self.setAstreinte(member, False, True)
                     await self.message_dispatch.clear_reactions()
                     await self.message_dispatch.add_reaction("🚑")
                     await self.message_dispatch.add_reaction("📱")
+                    await self.message_dispatch.add_reaction("🎙️")
                     self.radioLSMS = 000.0
                     self.radioLSPD = 000.0
                     self.radioEvent = False
@@ -145,7 +149,8 @@ class Bot(discord.Client):
             self.channelPDS = self.client.get_channel(self.channelIdPDS)
             self.roleService = self.channelHome.guild.get_role(self.roleIdService)
             self.roleDispatch = self.channelHome.guild.get_role(self.roleIdDispatch)
-            activity = discord.Activity(type = discord.ActivityType.watching, name = "0 en service")
+            self.roleAstreinte = self.channelHome.guild.get_role(self.roleIdAstreinte)
+            activity = discord.Activity(type = discord.ActivityType.watching, name = "🚑 0 | 📱 0")
             await self.client.change_presence(activity=activity)
         if(self.RDVEnabled):
             self.channelRDVChir = self.client.get_channel(self.channelIdRDVChir)
@@ -213,6 +218,8 @@ class Bot(discord.Client):
                     if(payload.emoji.name == "🚑"):
                         await self.setService(user, False)
                     elif(payload.emoji.name == "📱"):
+                        await self.setAstreinte(user, False)
+                    elif(payload.emoji.name == "🎙️"):
                         await self.setDispatch(user, False)
                         
         except discord.errors.NotFound:
@@ -258,6 +265,8 @@ class Bot(discord.Client):
                 if(payload.emoji.name == "🚑"):
                     await self.setService(user, True)
                 elif(payload.emoji.name == "📱"):
+                    await self.setAstreinte(user, True)
+                elif(payload.emoji.name == "🎙️"):
                     await self.setDispatch(user, True)
                 return
             elif(self.RDVEnabled and payload.channel_id == self.channelIdRDVChir):
@@ -376,6 +385,7 @@ class Bot(discord.Client):
             self.message_dispatch = await self.channelHome.send(embed=embedVar)
             await self.message_dispatch.add_reaction("🚑")
             await self.message_dispatch.add_reaction("📱")
+            await self.message_dispatch.add_reaction("🎙️")
         else:
             await self.message_dispatch.edit(embed=embedVar)
     
@@ -388,6 +398,25 @@ class Bot(discord.Client):
             color = COLOR_RED
             name = "Fin de Service"
             await user.remove_roles(self.roleService)
+        if automatic:
+            name = name + " (par la Centrale)"
+    
+        embedVar = discord.Embed(description = user.display_name, color=color)
+        embedVar.timestamp = datetime.utcnow()
+        embedVar.set_author(name=name, icon_url=IMG_LSMS_SCEAU)
+        await self.channelPDS.send(embed=embedVar)
+    
+        await self.setRichPresence()
+        
+    async def setAstreinte(self, user, service = True, automatic = False):
+        if service:
+            color = COLOR_GREEN
+            name = "En Astreinte"
+            await user.add_roles(self.roleAstreinte)
+        else:
+            color = COLOR_RED
+            name = "Fin de l'Astreinte"
+            await user.remove_roles(self.roleAstreinte)
         if automatic:
             name = name + " (par la Centrale)"
     
@@ -414,11 +443,14 @@ class Bot(discord.Client):
         await self.channelPDS.send(embed=embedVar)
 
     async def setRichPresence(self):
-        count = 0
+        countS = 0
+        countD = 0
         for member in self.channelPDS.guild.members:
             if self.roleService in member.roles:
-                count = count + 1            
-        activity = discord.Activity(type = discord.ActivityType.watching, name = str(count) + " en service")
+                countS = countS + 1
+            if self.roleAstreinte in member.roles:
+                countD = countD + 1
+        activity = discord.Activity(type = discord.ActivityType.watching, name = "🚑 " + str(countS) + " | 📱 " + str(countD))
         await self.client.change_presence(activity=activity)
 
     async def updateImage(self):
