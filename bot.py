@@ -28,16 +28,22 @@ COLOR_DARK_GOLD = 12745742
 COLOR_DEFAULT = 0
 
 ARRAY_BEDS = {}
-ARRAY_BEDS[0] = (110, 260)
-ARRAY_BEDS[1] = (470, 260)
-ARRAY_BEDS[2] = (95, 325)
-ARRAY_BEDS[3] = (410, 325)
-ARRAY_BEDS[4] = (95, 470)
-ARRAY_BEDS[5] = (410, 470)
-ARRAY_BEDS[6] = (95, 610)
-ARRAY_BEDS[7] = (410, 610)
-ARRAY_BEDS[8] = (710, 550)
-ARRAY_BEDS[9] = (970, 550)
+ARRAY_BEDS[0] = (1020, 580)
+ARRAY_BEDS[1] = (1020, 390)
+ARRAY_BEDS[2] = (1020, 205)
+ARRAY_BEDS[3] = (1020, 25)
+ARRAY_BEDS[4] = (720, 25)
+ARRAY_BEDS[5] = (720, 205)
+ARRAY_BEDS[6] = (720, 390)
+ARRAY_BEDS[7] = (720, 580)
+ARRAY_BEDS[8] = (385, 580)
+ARRAY_BEDS[9] = (385, 390)
+ARRAY_BEDS[10] = (385, 205)
+ARRAY_BEDS[11] = (385, 25)
+ARRAY_BEDS[12] = (90, 25)
+ARRAY_BEDS[13] = (90, 205)
+ARRAY_BEDS[14] = (90, 390)
+ARRAY_BEDS[15] = (90, 580)
 
 slash = None
         
@@ -112,7 +118,7 @@ class Bot(discord.Client):
                     await self.message_dispatch.add_reaction("🎙️")
                     self.radioLSMS = 000.0
                     self.radioLSPD = 000.0
-                    self.radioEvent = False
+                    self.radioEvent = 000.0
                     data = {}
                     with open(DB_RADIO, 'w') as outfile:
                         json.dump(data, outfile)
@@ -140,7 +146,7 @@ class Bot(discord.Client):
         commands = await discord_slash.utils.manage_commands.get_all_commands(self.client.user.id, self.token, None)
         print("Available commands :")
         print(commands)
-        #await discord_slash.utils.manage_commands.remove_slash_command(self.client.user.id, self.token, None, 795578804689043456)
+        #await discord_slash.utils.manage_commands.remove_slash_command(self.client.user.id, self.token, None, 807665369736282152)
     
         if(self.BedsEnabled or self.PDSEnabled or self.AdminCommandsEnabled):
             self.channelHome = self.client.get_channel(self.channelIdHome)
@@ -240,26 +246,38 @@ class Bot(discord.Client):
             message = await channel.fetch_message(payload.message_id)
             
             if(self.BedsEnabled and payload.message_id == self.message_head.id):
-                if(payload.emoji.name == "0\u20E3"):
+                if(payload.emoji.name == "🇦"):
                     await self.removeBed(0)
-                elif(payload.emoji.name == "1\u20E3"):
+                elif(payload.emoji.name == "🇧"):
                     await self.removeBed(1)
-                elif(payload.emoji.name == "2\u20E3"):
+                elif(payload.emoji.name == "🇨"):
                     await self.removeBed(2)
-                elif(payload.emoji.name == "3\u20E3"):
+                elif(payload.emoji.name == "🇩"):
                     await self.removeBed(3)
-                elif(payload.emoji.name == "4\u20E3"):
+                elif(payload.emoji.name == "🇪"):
                     await self.removeBed(4)
-                elif(payload.emoji.name == "5\u20E3"):
+                elif(payload.emoji.name == "🇫"):
                     await self.removeBed(5)
-                elif(payload.emoji.name == "6\u20E3"):
+                elif(payload.emoji.name == "🇬"):
                     await self.removeBed(6)
-                elif(payload.emoji.name == "7\u20E3"):
+                elif(payload.emoji.name == "🇭"):
                     await self.removeBed(7)
-                elif(payload.emoji.name == "8\u20E3"):
+                elif(payload.emoji.name == "🇮"):
                     await self.removeBed(8)
-                elif(payload.emoji.name == "9\u20E3"):
+                elif(payload.emoji.name == "🇯"):
                     await self.removeBed(9)
+                elif(payload.emoji.name == "🇰"):
+                    await self.removeBed(10)
+                elif(payload.emoji.name == "🇱"):
+                    await self.removeBed(11)
+                elif(payload.emoji.name == "🇲"):
+                    await self.removeBed(12)
+                elif(payload.emoji.name == "🇳"):
+                    await self.removeBed(13)
+                elif(payload.emoji.name == "🇴"):
+                    await self.removeBed(14)
+                elif(payload.emoji.name == "🇵"):
+                    await self.removeBed(15)  
                 return
             elif(self.PDSEnabled and payload.message_id == self.message_dispatch.id):
                 if(payload.emoji.name == "🚑"):
@@ -459,14 +477,7 @@ class Bot(discord.Client):
             draw = ImageDraw.Draw(image)
             font = ImageFont.truetype("Calibri Regular.ttf", 45)     
             for bed in self.beds:
-                if(bed.bed == 0 or bed.bed == 1 or bed.bed == 8 or bed.bed == 9):
-                    txt=Image.new('RGBA', (500,100), (0, 0, 0, 0))
-                    d = ImageDraw.Draw(txt)
-                    d.text( (0, 0), bed.patient.replace(" ", "\n", 1), fill='white', font=font, stroke_width=1, stroke_fill='black')
-                    foreground = txt.rotate(90,  expand=1)
-                    image.paste(foreground, (ARRAY_BEDS[bed.bed][0],-500+ARRAY_BEDS[bed.bed][1]), foreground)
-                else:
-                    draw.text(ARRAY_BEDS[bed.bed], bed.patient.replace(" ", "\n", 1), fill='white', font=font, stroke_width=1, stroke_fill='black')
+                draw.text(ARRAY_BEDS[bed.bed], bed.patient.replace(" ", "\n", 1), fill='white', font=font, stroke_width=1, stroke_fill='black')
                 if(bed.lspd):
                     draw.ellipse((ARRAY_BEDS[bed.bed][0]-10, ARRAY_BEDS[bed.bed][1]-10, ARRAY_BEDS[bed.bed][0]+10, ARRAY_BEDS[bed.bed][1]+10), fill=(255, 0, 0), outline=(0, 0, 0))
             
@@ -480,9 +491,44 @@ class Bot(discord.Client):
             self.message_head = await self.client.get_channel(self.channelIdHome).send(file=discord.File(fp=image_binary, filename='lit.png'))
             for bed in self.beds:
                 try:
-                    await self.message_head.add_reaction(self.getReactionByNumber(bed.bed))
+                    if bed.bed == 0:
+                        await self.message_head.add_reaction("🇦")
+                    elif bed.bed == 1:
+                        await self.message_head.add_reaction("🇧")
+                    elif bed.bed == 2:
+                        await self.message_head.add_reaction("🇨")
+                    elif bed.bed == 3:
+                        await self.message_head.add_reaction("🇩")
+                    elif bed.bed == 4:
+                        await self.message_head.add_reaction("🇪")
+                    elif bed.bed == 5:
+                        await self.message_head.add_reaction("🇫")
+                    elif bed.bed == 6:
+                        await self.message_head.add_reaction("🇬")
+                    elif bed.bed == 7:
+                        await self.message_head.add_reaction("🇭")
+                    elif bed.bed == 8:
+                        await self.message_head.add_reaction("🇮")
+                    elif bed.bed == 9:
+                        await self.message_head.add_reaction("🇯")
+                    elif bed.bed == 10:
+                        await self.message_head.add_reaction("🇰")
+                    elif bed.bed == 11:
+                        await self.message_head.add_reaction("🇱")
+                    elif bed.bed == 12:
+                        await self.message_head.add_reaction("🇲")                    
+                    elif bed.bed == 13:
+                        await self.message_head.add_reaction("🇳")
+                    elif bed.bed == 14:
+                        await self.message_head.add_reaction("🇴")
+                    elif bed.bed == 15:
+                        await self.message_head.add_reaction("🇵")
+
+                    #await self.message_head.add_reaction(self.getReactionByNumber(bed.bed))
+                    #await self.message_head.add_reaction("🇦")
                 except discord.errors.NotFound:
                     pass
+                
 
     def getReactionByNumber(self, number):
         return str(number) + "\u20E3"
@@ -579,9 +625,9 @@ async def _radio(ctx: SlashContext, organisme: int, frequence: str):
         "type": 3,
         "required": True
     },{
-        "name": "numero",
-        "description": "Numéro du lit",
-        "type": 4,
+        "name": "lettre",
+        "description": "Lettre du lit",
+        "type": 3,
         "required": True
     },{
         "name": "lspd",
@@ -595,7 +641,7 @@ async def _radio(ctx: SlashContext, organisme: int, frequence: str):
             "value": 0
             }]
     }])
-async def _lit(ctx: SlashContext, nom: str, numero: int, lspd: int=0):
+async def _lit(ctx: SlashContext, nom: str, numerostr: str, lspd: int=0):
     authorized = False
     if bot.roleLSMS in ctx.author.roles:
         authorized = True
@@ -604,6 +650,40 @@ async def _lit(ctx: SlashContext, nom: str, numero: int, lspd: int=0):
            authorized = True
 
     if authorized:
+        #numero = 0
+        if numerostr == "A":
+            numero = 0
+        elif numerostr =="B":
+            numero = 1
+        elif numerostr =="C":
+            numero = 2
+        elif numerostr =="D":
+            numero = 3
+        elif numerostr =="E":
+            numero = 4
+        elif numerostr =="F":
+            numero = 5
+        elif numerostr =="G":
+            numero = 6
+        elif numerostr =="H":
+            numero = 7
+        elif numerostr =="I":
+            numero = 8
+        elif numerostr =="J":
+            numero = 9
+        elif numerostr =="K":
+            numero = 10
+        elif numerostr =="L":
+            numero = 11
+        elif numerostr =="M":
+            numero = 12
+        elif numerostr =="N":
+            numero = 13
+        elif numerostr =="O":
+            numero = 14
+        elif numerostr =="P":
+            numero = 15
+
         info = InfoBed(nom, numero, bool(lspd))
         await bot.updateBed(info)
 
