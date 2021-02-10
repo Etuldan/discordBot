@@ -44,6 +44,8 @@ ARRAY_BEDS[12] = (90, 25)
 ARRAY_BEDS[13] = (90, 205)
 ARRAY_BEDS[14] = (90, 390)
 ARRAY_BEDS[15] = (90, 580)
+ARRAY_BEDS[16] = (1310,410)
+ARRAY_BEDS[17] = (1665, 410)
 
 slash = None
         
@@ -277,7 +279,11 @@ class Bot(discord.Client):
                 elif(payload.emoji.name == "🇴"):
                     await self.removeBed(14)
                 elif(payload.emoji.name == "🇵"):
-                    await self.removeBed(15)  
+                    await self.removeBed(15)
+                elif(payload.emoji.name == "🇶"):
+                    await self.removeBed(16)
+                elif(payload.emoji.name == "🇷"):
+                    await self.removeBed(17)
                 return
             elif(self.PDSEnabled and payload.message_id == self.message_dispatch.id):
                 if(payload.emoji.name == "🚑"):
@@ -477,9 +483,14 @@ class Bot(discord.Client):
             draw = ImageDraw.Draw(image)
             font = ImageFont.truetype("Calibri Regular.ttf", 45)     
             for bed in self.beds:
-                draw.text(ARRAY_BEDS[bed.bed], bed.patient.replace(" ", "\n", 1), fill='white', font=font, stroke_width=1, stroke_fill='black')
-                if(bed.lspd):
-                    draw.ellipse((ARRAY_BEDS[bed.bed][0]-10, ARRAY_BEDS[bed.bed][1]-10, ARRAY_BEDS[bed.bed][0]+10, ARRAY_BEDS[bed.bed][1]+10), fill=(255, 0, 0), outline=(0, 0, 0))
+                if(bed.bed == 16 or bed.bed == 17):
+                    txt=Image.new('RGBA', (500,100), (0, 0, 0, 0))
+                    d = ImageDraw.Draw(txt)
+                    d.text( (0, 0), bed.patient.replace(" ", "\n", 1), fill='white', font=font, stroke_width=1, stroke_fill='black')
+                    foreground = txt.rotate(90,  expand=1)
+                    image.paste(foreground, (ARRAY_BEDS[bed.bed][0],-500+ARRAY_BEDS[bed.bed][1]), foreground)
+                else:
+                    draw.text(ARRAY_BEDS[bed.bed], bed.patient.replace(" ", "\n", 1), fill='white', font=font, stroke_width=1, stroke_fill='black')
             
             image.save(image_binary, 'PNG')
             image_binary.seek(0)
@@ -523,6 +534,10 @@ class Bot(discord.Client):
                         await self.message_head.add_reaction("🇴")
                     elif bed.bed == 15:
                         await self.message_head.add_reaction("🇵")
+                    elif bed.bed == 16:
+                        await self.message_head.add_reaction("🇶")
+                    elif bed.bed == 17:
+                        await self.message_head.add_reaction("🇷")
 
                     #await self.message_head.add_reaction(self.getReactionByNumber(bed.bed))
                     #await self.message_head.add_reaction("🇦")
@@ -683,6 +698,10 @@ async def _lit(ctx: SlashContext, nom: str, numerostr: str, lspd: int=0):
             numero = 14
         elif numerostr =="P":
             numero = 15
+        elif numerostr =="Q":
+            numero = 16
+        elif numerostr =="R":
+            numero = 17
 
         info = InfoBed(nom, numero, bool(lspd))
         await bot.updateBed(info)
