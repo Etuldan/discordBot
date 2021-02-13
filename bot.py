@@ -483,6 +483,8 @@ class Bot(discord.Client):
             draw = ImageDraw.Draw(image)
             font = ImageFont.truetype("Calibri Regular.ttf", 45)     
             for bed in self.beds:
+                if(bed.lspd):
+                    draw.ellipse((ARRAY_BEDS[bed.bed][0]-10, ARRAY_BEDS[bed.bed][1]-10, ARRAY_BEDS[bed.bed][0]+10, ARRAY_BEDS[bed.bed][1]+10), fill=(255, 0, 0), outline=(0, 0, 0))
                 if(bed.bed == 16 or bed.bed == 17):
                     txt=Image.new('RGBA', (500,100), (0, 0, 0, 0))
                     d = ImageDraw.Draw(txt)
