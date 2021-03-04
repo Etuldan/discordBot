@@ -387,7 +387,7 @@ class Bot(discord.Client):
         await temp.send(" - Passage du PPA")
         await temp.send(" - Traumatologie")
         await temp.send(" - Chirurgie")
-        await temp.send(" - Héllicoptère")     
+        await temp.send(" - Hélicoptère")     
     
     async def AddRDV(self, patient, phone, category, reason, medic):
         embedVar = discord.Embed(color=COLOR_GREEN)
