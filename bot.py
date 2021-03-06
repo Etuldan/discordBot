@@ -48,7 +48,8 @@ ARRAY_BEDS[16] = (1310,410)
 ARRAY_BEDS[17] = (1665, 410)
 
 slash = None
-        
+guild_ids = []    
+    
 class Bot(discord.Client):
     PDSEnabled = True
     BedsEnabled = True
@@ -67,6 +68,7 @@ class Bot(discord.Client):
 
     def __init__(self):
         global slash
+        global guild_ids
         
         config = configparser.ConfigParser()
         config.read('config.ini')
@@ -86,10 +88,14 @@ class Bot(discord.Client):
         self.roleIdLSMS = int(config['Role']['LSMS'])
         self.formationChannel = int(config['Section']['Formation'])
         self.token = config['Discord']['Token']
-
+        guild_ids = []
+        tempList  = config['Discord']['GuildID'].split(',')
+        for tempid in tempList:
+            guild_ids.append((int(tempid)))
+                
         intents = discord.Intents.all()
         self.client = discord.Client(intents=intents)       
-        slash = SlashCommand(self.client, auto_register = True)
+        slash = SlashCommand(self.client, sync_commands=True)
        
         self.on_ready = self.client.event(self.on_ready)
         self.on_disconnect = self.client.event(self.on_disconnect)
@@ -145,11 +151,7 @@ class Bot(discord.Client):
     async def on_ready(self):
         print(str(self.client.user) + " has connected to Discord")
         print("Bot ID is " + str(self.client.user.id))
-        commands = await discord_slash.utils.manage_commands.get_all_commands(self.client.user.id, self.token, None)
-        print("Available commands :")
-        print(commands)
-        #await discord_slash.utils.manage_commands.remove_slash_command(self.client.user.id, self.token, None, 809821100519325739)
-    
+
         if(self.BedsEnabled or self.PDSEnabled or self.AdminCommandsEnabled):
             self.channelHome = self.client.get_channel(self.channelIdHome)
             await self.channelHome.purge()
@@ -632,8 +634,10 @@ bot = Bot()
         "description": "Fréquence radio",
         "type": 3,
         "required": True
-    }])
+    }],
+    guild_ids=guild_ids)
 async def _radio(ctx: SlashContext, organisme: int, frequence: str):
+    await ctx.respond()
     authorized = False
     if bot.roleLSMS in ctx.author.roles:
         authorized = True
@@ -674,8 +678,10 @@ async def _radio(ctx: SlashContext, organisme: int, frequence: str):
             "name": "Non",
             "value": 0
             }]
-    }])
+    }],
+    guild_ids=guild_ids)
 async def _lit(ctx: SlashContext, nom: str, numerostr: str, lspd: int=0):
+    await ctx.respond()
     authorized = False
     if bot.roleLSMS in ctx.author.roles:
         authorized = True
@@ -727,9 +733,10 @@ async def _lit(ctx: SlashContext, nom: str, numerostr: str, lspd: int=0):
 
 @slash.slash(
     name="save",
-    description="[ADMIN] Sauvegarde avant reboot manuel"
-    )
+    description="[ADMIN] Sauvegarde avant reboot manuel",
+    guild_ids=guild_ids)
 async def _save(ctx: SlashContext):
+    await ctx.respond()
     authorized = False
     for tempRole in bot.roleAdmin:
         if tempRole in ctx.author.roles:
@@ -746,8 +753,10 @@ async def _save(ctx: SlashContext):
         "description": "Prénom & Nom du médecin",
         "type": 3,
         "required": True
-    }])
+    }],
+    guild_ids=guild_ids)
 async def _new(ctx: SlashContext, nom: str):
+    await ctx.respond()
     authorized = False
     for tempRole in bot.roleAdmin:
         if tempRole in ctx.author.roles:
@@ -789,8 +798,10 @@ async def _new(ctx: SlashContext, nom: str):
         "description": "Besoin du patient",
         "type": 3,
         "required": True
-    }])
+    }],
+    guild_ids=guild_ids)
 async def _rdv(ctx: SlashContext, nom: str, numero: str, categorie: int, description: str ):
+    await ctx.respond()
     authorized = False
     if bot.roleLSMS in ctx.author.roles:
         authorized = True
