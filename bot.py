@@ -637,7 +637,7 @@ bot = Bot()
     }],
     guild_ids=guild_ids)
 async def _radio(ctx: SlashContext, organisme: int, frequence: str):
-    await ctx.respond()
+    await ctx.respond(4)
     authorized = False
     if bot.roleLSMS in ctx.author.roles:
         authorized = True
@@ -681,7 +681,7 @@ async def _radio(ctx: SlashContext, organisme: int, frequence: str):
     }],
     guild_ids=guild_ids)
 async def _lit(ctx: SlashContext, nom: str, numerostr: str, lspd: int=0):
-    await ctx.respond()
+    await ctx.respond(4)
     authorized = False
     if bot.roleLSMS in ctx.author.roles:
         authorized = True
@@ -736,7 +736,7 @@ async def _lit(ctx: SlashContext, nom: str, numerostr: str, lspd: int=0):
     description="[ADMIN] Sauvegarde avant reboot manuel",
     guild_ids=guild_ids)
 async def _save(ctx: SlashContext):
-    await ctx.respond()
+    await ctx.respond(4)
     authorized = False
     for tempRole in bot.roleAdmin:
         if tempRole in ctx.author.roles:
@@ -756,7 +756,7 @@ async def _save(ctx: SlashContext):
     }],
     guild_ids=guild_ids)
 async def _new(ctx: SlashContext, nom: str):
-    await ctx.respond()
+    await ctx.respond(4)
     authorized = False
     for tempRole in bot.roleAdmin:
         if tempRole in ctx.author.roles:
@@ -801,7 +801,7 @@ async def _new(ctx: SlashContext, nom: str):
     }],
     guild_ids=guild_ids)
 async def _rdv(ctx: SlashContext, nom: str, numero: str, categorie: int, description: str ):
-    await ctx.respond()
+    await ctx.respond(4)
     authorized = False
     if bot.roleLSMS in ctx.author.roles:
         authorized = True
