@@ -564,10 +564,6 @@ class Bot(discord.Client):
 
                 except discord.errors.NotFound:
                     pass
-                
-
-    def getReactionByNumber(self, number):
-        return str(number) + "\u20E3"
 
     async def removeBed(self, slot):
         for bed in self.beds:
@@ -690,7 +686,6 @@ async def _lit(ctx: SlashContext, nom: str, numerostr: str, lspd: int=0):
            authorized = True
 
     if authorized:
-        #numero = 0
         if numerostr == "A":
             numero = 0
         elif numerostr =="B":
