@@ -649,8 +649,9 @@ async def _radio(ctx: SlashContext, organisme: int, frequence: str):
         elif(organisme == 3):
             bot.radioEvent = frequence        
         await bot.updateRadio()
-        
-    await ctx.send(content="Modification des radios", hidden=True)
+        await ctx.send(content="Modification des radios effectuée.", hidden=True)
+    else:
+        await ctx.send(content="Echec de la modification des radios !", hidden=True)
 
 @slash.slash(
     name="lit",
@@ -727,8 +728,9 @@ async def _lit(ctx: SlashContext, nom: str, numerostr: str, lspd: int=0):
 
         info = InfoBed(nom, numero, bool(lspd))
         await bot.updateBed(info)
-        
-    await ctx.send(content="Modification des lits", hidden=True)
+        await ctx.send(content="Modification des lits effectuée.", hidden=True)
+    else:    
+        await ctx.send(content="Echec de la modification des lits !", hidden=True)
 
 @slash.slash(
     name="save",
@@ -743,8 +745,9 @@ async def _save(ctx: SlashContext):
 
     if authorized:
         bot.SaveToFile()
-        
-    await ctx.send(content="Sauvegarde manuelle", hidden=True)
+        await ctx.send(content="Sauvegarde manuelle effectuée.", hidden=True)
+    else:
+        await ctx.send(content="Echec de la sauvegarde manuelle !", hidden=True)
 
 @slash.slash(
     name="new",
@@ -765,8 +768,9 @@ async def _new(ctx: SlashContext, nom: str):
 
     if authorized:
         await bot.NewMedic(ctx, nom)
-       
-    await ctx.send(content="Nouveau médecin", hidden=True)
+        await ctx.send(content="Création d'un dossier de nouveau médecin effectuée.", hidden=True)
+    else:
+        await ctx.send(content="Echec de la création d'un dossier de nouveau médecin !", hidden=True)
 
 @slash.slash(
     name="rdv",
@@ -814,8 +818,9 @@ async def _rdv(ctx: SlashContext, nom: str, numero: str, categorie: int, descrip
 
     if authorized:
         await bot.AddRDV(nom, numero, categorie, description, ctx.author)
-        
-    await ctx.send(content="Nouveau RDV", hidden=True)
+        await ctx.send(content="Création d'un nouveau RDV.", hidden=True)
+    else:
+        await ctx.send(content="Echec de création de RDV !", hidden=True)
     
 bot.Run()
 
