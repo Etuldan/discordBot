@@ -679,7 +679,7 @@ async def _radio(ctx: SlashContext, organisme: int, frequence: str):
             }]
     }],
     guild_ids=guild_ids)
-async def _lit(ctx: SlashContext, nom: str, numerostr: str, lspd: int=0):
+async def _lit(ctx: SlashContext, nom: str, lettre: str, lspd: int=0):
     await ctx.defer(hidden=True)   
     authorized = False
     if bot.roleLSMS in ctx.author.roles:
@@ -689,41 +689,41 @@ async def _lit(ctx: SlashContext, nom: str, numerostr: str, lspd: int=0):
            authorized = True
 
     if authorized:
-        if numerostr == "A":
+        if lettre == "A":
             numero = 0
-        elif numerostr =="B":
+        elif lettre =="B":
             numero = 1
-        elif numerostr =="C":
+        elif lettre =="C":
             numero = 2
-        elif numerostr =="D":
+        elif lettre =="D":
             numero = 3
-        elif numerostr =="E":
+        elif lettre =="E":
             numero = 4
-        elif numerostr =="F":
+        elif lettre =="F":
             numero = 5
-        elif numerostr =="G":
+        elif lettre =="G":
             numero = 6
-        elif numerostr =="H":
+        elif lettre =="H":
             numero = 7
-        elif numerostr =="I":
+        elif lettre =="I":
             numero = 8
-        elif numerostr =="J":
+        elif lettre =="J":
             numero = 9
-        elif numerostr =="K":
+        elif lettre =="K":
             numero = 10
-        elif numerostr =="L":
+        elif lettre =="L":
             numero = 11
-        elif numerostr =="M":
+        elif lettre =="M":
             numero = 12
-        elif numerostr =="N":
+        elif lettre =="N":
             numero = 13
-        elif numerostr =="O":
+        elif lettre =="O":
             numero = 14
-        elif numerostr =="P":
+        elif lettre =="P":
             numero = 15
-        elif numerostr =="Q":
+        elif lettre =="Q":
             numero = 16
-        elif numerostr =="R":
+        elif lettre =="R":
             numero = 17
 
         info = InfoBed(nom, numero, bool(lspd))
