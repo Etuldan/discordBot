@@ -633,7 +633,7 @@ bot = Bot()
     }],
     guild_ids=guild_ids)
 async def _radio(ctx: SlashContext, organisme: int, frequence: str):
-    await ctx.respond(4)
+    await ctx.defer(hidden=True)    
     authorized = False
     if bot.roleLSMS in ctx.author.roles:
         authorized = True
@@ -649,6 +649,8 @@ async def _radio(ctx: SlashContext, organisme: int, frequence: str):
         elif(organisme == 3):
             bot.radioEvent = frequence        
         await bot.updateRadio()
+        
+    await ctx.send(content="Modification des radios", hidden=True)
 
 @slash.slash(
     name="lit",
@@ -677,7 +679,7 @@ async def _radio(ctx: SlashContext, organisme: int, frequence: str):
     }],
     guild_ids=guild_ids)
 async def _lit(ctx: SlashContext, nom: str, numerostr: str, lspd: int=0):
-    await ctx.respond(4)
+    await ctx.defer(hidden=True)   
     authorized = False
     if bot.roleLSMS in ctx.author.roles:
         authorized = True
@@ -725,13 +727,15 @@ async def _lit(ctx: SlashContext, nom: str, numerostr: str, lspd: int=0):
 
         info = InfoBed(nom, numero, bool(lspd))
         await bot.updateBed(info)
+        
+    await ctx.send(content="Modification des lits", hidden=True)
 
 @slash.slash(
     name="save",
     description="[ADMIN] Sauvegarde avant reboot manuel",
     guild_ids=guild_ids)
 async def _save(ctx: SlashContext):
-    await ctx.respond(4)
+    await ctx.defer(hidden=True)   
     authorized = False
     for tempRole in bot.roleAdmin:
         if tempRole in ctx.author.roles:
@@ -739,6 +743,8 @@ async def _save(ctx: SlashContext):
 
     if authorized:
         bot.SaveToFile()
+        
+    await ctx.send(content="Sauvegarde manuelle", hidden=True)
 
 @slash.slash(
     name="new",
@@ -751,7 +757,7 @@ async def _save(ctx: SlashContext):
     }],
     guild_ids=guild_ids)
 async def _new(ctx: SlashContext, nom: str):
-    await ctx.respond(4)
+    await ctx.defer(hidden=True)   
     authorized = False
     for tempRole in bot.roleAdmin:
         if tempRole in ctx.author.roles:
@@ -759,6 +765,8 @@ async def _new(ctx: SlashContext, nom: str):
 
     if authorized:
         await bot.NewMedic(ctx, nom)
+       
+    await ctx.send(content="Nouveau médecin", hidden=True)
 
 @slash.slash(
     name="rdv",
@@ -796,7 +804,7 @@ async def _new(ctx: SlashContext, nom: str):
     }],
     guild_ids=guild_ids)
 async def _rdv(ctx: SlashContext, nom: str, numero: str, categorie: int, description: str ):
-    await ctx.respond(4)
+    await ctx.defer(hidden=True)   
     authorized = False
     if bot.roleLSMS in ctx.author.roles:
         authorized = True
@@ -806,7 +814,9 @@ async def _rdv(ctx: SlashContext, nom: str, numero: str, categorie: int, descrip
 
     if authorized:
         await bot.AddRDV(nom, numero, categorie, description, ctx.author)
-
+        
+    await ctx.send(content="Nouveau RDV", hidden=True)
+    
 bot.Run()
 
 
