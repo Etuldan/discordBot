@@ -85,6 +85,7 @@ class Bot(discord.Client):
         self.roleIdDispatch = int(config['Role']['Dispatch'])
         self.roleIdAstreinte = int(config['Role']['Astreinte'])
         self.roleIdAdmin = config['Role']['Admin']
+        self.roleIdFichePatient = config['Role']['FichePatient']
         self.roleIdLSMS = int(config['Role']['LSMS'])
         self.formationChannel = int(config['Section']['Formation'])
         self.token = config['Discord']['Token']
@@ -171,9 +172,14 @@ class Bot(discord.Client):
             self.channelRDVF1SArchive = self.client.get_channel(self.channelIdRDVF1SArchive)
         if(self.AdminCommandsEnabled):
             self.roleAdmin = []
+            self.roleFichePatient = []
             tempList  = self.roleIdAdmin.split(',')
             for tempRole in tempList:
                 self.roleAdmin.append(self.channelHome.guild.get_role(int(tempRole)))
+                self.roleFichePatient.append(self.channelHome.guild.get_role(int(tempRole)))
+            tempList  = self.roleIdFichePatient.split(',')
+            for tempRole in tempList:
+                self.roleFichePatient.append(self.channelHome.guild.get_role(int(tempRole)))
         self.roleLSMS = self.channelHome.guild.get_role(self.roleIdLSMS)
 
         if(self.PDSEnabled):
@@ -762,7 +768,7 @@ async def _save(ctx: SlashContext):
 async def _new(ctx: SlashContext, nom: str):
     await ctx.defer(hidden=True)   
     authorized = False
-    for tempRole in bot.roleAdmin:
+    for tempRole in bot.roleFichePatient:
         if tempRole in ctx.author.roles:
            authorized = True
 
