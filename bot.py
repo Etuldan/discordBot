@@ -76,11 +76,11 @@ class Bot(discord.Client):
         self.channelIdPDS = int(config['Channel']['PDS'])
         if self.RDVEnabled:
             self.channelIdRDVChir = int(config['Channel']['RDVChirurgie'])
-            self.channelIdRDVChirArchive = int(config['Channel']['RDVChirurgieArchive'])
+#           self.channelIdRDVChirArchive = int(config['Channel']['RDVChirurgieArchive'])
             self.channelIdRDVPsy = int(config['Channel']['RDVPsy'])
-            self.channelIdRDVPsyArchive = int(config['Channel']['RDVPsyArchive'])
-            self.channelIdRDVF1S = int(config['Channel']['RDVF1S'])
-            self.channelIdRDVF1SArchive = int(config['Channel']['RDVF1SArchive'])
+#           self.channelIdRDVPsyArchive = int(config['Channel']['RDVPsyArchive'])
+#           self.channelIdRDVF1S = int(config['Channel']['RDVF1S'])
+#           self.channelIdRDVF1SArchive = int(config['Channel']['RDVF1SArchive'])
         self.roleIdService = int(config['Role']['Service'])
         self.roleIdDispatch = int(config['Role']['Dispatch'])
         self.roleIdAstreinte = int(config['Role']['Astreinte'])
@@ -165,11 +165,11 @@ class Bot(discord.Client):
             await self.client.change_presence(activity=activity)
         if(self.RDVEnabled):
             self.channelRDVChir = self.client.get_channel(self.channelIdRDVChir)
-            self.channelRDVChirArchive = self.client.get_channel(self.channelIdRDVChirArchive)
+#           self.channelRDVChirArchive = self.client.get_channel(self.channelIdRDVChirArchive)
             self.channelRDVPsy = self.client.get_channel(self.channelIdRDVPsy)
-            self.channelRDVPsyArchive = self.client.get_channel(self.channelIdRDVPsyArchive)
-            self.channelRDVF1S = self.client.get_channel(self.channelIdRDVF1S)
-            self.channelRDVF1SArchive = self.client.get_channel(self.channelIdRDVF1SArchive)
+#           self.channelRDVPsyArchive = self.client.get_channel(self.channelIdRDVPsyArchive)
+#           self.channelRDVF1S = self.client.get_channel(self.channelIdRDVF1S)
+#           self.channelRDVF1SArchive = self.client.get_channel(self.channelIdRDVF1SArchive)
         if(self.AdminCommandsEnabled):
             self.roleAdmin = []
             self.roleFichePatient = []
@@ -242,7 +242,7 @@ class Bot(discord.Client):
             pass
 
     async def on_raw_reaction_add(self, payload):
-        if payload.channel_id != self.channelIdHome and payload.channel_id != self.channelIdRDVChir and payload.channel_id != self.channelIdRDVPsy and payload.channel_id != self.channelIdRDVF1S:
+        if payload.channel_id != self.channelIdHome and payload.channel_id != self.channelIdRDVChir and payload.channel_id != self.channelIdRDVPsy: #and payload.channel_id != self.channelIdRDVF1S:
             return
     
         try:
@@ -305,41 +305,41 @@ class Bot(discord.Client):
                 if(payload.emoji.name == "✅"):
                     embedVar = message.embeds[0]
                     embedVar.set_footer(text=user.display_name)
-                    await self.channelRDVChirArchive.send(embed=embedVar)
+                    #await self.channelRDVChirArchive.send(embed=embedVar)
                     await message.delete()
                 elif(payload.emoji.name == "❌"):
                     embedVar = message.embeds[0]
                     embedVar.set_footer(text=user.display_name)
                     embedVar.color=COLOR_RED
-                    await self.channelRDVChirArchive.send(embed=embedVar)
+                    #await self.channelRDVChirArchive.send(embed=embedVar)
                     await message.delete()
                 return
             elif(self.RDVEnabled and payload.channel_id == self.channelIdRDVPsy):
                 if(payload.emoji.name == "✅"):
                     embedVar = message.embeds[0]
                     embedVar.set_footer(text=user.display_name)
-                    await self.channelRDVPsyArchive.send(embed=embedVar)
+                    #await self.channelRDVPsyArchive.send(embed=embedVar)
                     await message.delete()
                 elif(payload.emoji.name == "❌"):
                     embedVar = message.embeds[0]
                     embedVar.set_footer(text=user.display_name)
                     embedVar.color=COLOR_RED
-                    await self.channelRDVPsyArchive.send(embed=embedVar)
+                    #await self.channelRDVPsyArchive.send(embed=embedVar)
                     await message.delete()
                 return
-            elif(self.RDVEnabled and payload.channel_id == self.channelIdRDVF1S):
-                if(payload.emoji.name == "✅"):
-                    embedVar = message.embeds[0]
-                    embedVar.set_footer(text=user.display_name)
-                    await self.channelRDVF1SArchive.send(embed=embedVar)
-                    await message.delete()
-                elif(payload.emoji.name == "❌"):
-                    embedVar = message.embeds[0]
-                    embedVar.set_footer(text=user.display_name)
-                    embedVar.color=COLOR_RED
-                    await self.channelRDVF1SArchive.send(embed=embedVar)
-                    await message.delete()
-                return
+            # elif(self.RDVEnabled and payload.channel_id == self.channelIdRDVF1S):
+            #     if(payload.emoji.name == "✅"):
+            #         embedVar = message.embeds[0]
+            #         embedVar.set_footer(text=user.display_name)
+            #         await self.channelRDVF1SArchive.send(embed=embedVar)
+            #         await message.delete()
+            #     elif(payload.emoji.name == "❌"):
+            #         embedVar = message.embeds[0]
+            #         embedVar.set_footer(text=user.display_name)
+            #         embedVar.color=COLOR_RED
+            #         await self.channelRDVF1SArchive.send(embed=embedVar)
+            #         await message.delete()
+            #    return
         
         except discord.errors.NotFound:
             pass
@@ -403,8 +403,8 @@ class Bot(discord.Client):
             await self.channelRDVPsy.send(embed=embedVar)
         elif(category == 2):
             await self.channelRDVChir.send(embed=embedVar)
-        elif(category == 3):
-            await self.channelRDVF1S.send(embed=embedVar)        
+        # elif(category == 3):
+        #     await self.channelRDVF1S.send(embed=embedVar)        
     
     async def updateBed(self, infoBed):
         found = False
@@ -791,16 +791,20 @@ async def _new(ctx: SlashContext, nom: str):
         "description": "Type de rendez-vous",
         "type": 4,
         "required": True,
-        "choices": [{
+        "choices": [
+            {
             "name": "Psychologie",
             "value": 1
-            },{
+            },
+            {
             "name": "Chirurgie",
             "value": 2
-            },{
-            "name": "Formation 1er Secours",
-            "value": 3
-            }]
+            }
+            # ,{
+            # "name": "Formation 1er Secours",
+            # "value": 3
+            # }
+            ]
     },{
         "name": "description",
         "description": "Besoin du patient",
