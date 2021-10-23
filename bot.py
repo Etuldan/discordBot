@@ -63,6 +63,7 @@ class Bot(discord.Client):
 
     radioLSMS = 000.0
     radioLSPD = 000.0
+    radioBCMS = 000.0
     radioEvent = 0
     beds = []
 
@@ -127,6 +128,7 @@ class Bot(discord.Client):
                     await self.message_dispatch.add_reaction("🎙️")
                     self.radioLSMS = 000.0
                     self.radioLSPD = 000.0
+                    self.radioBCMS = 000.0
                     self.radioEvent = 0
                     data = {}
                     with open(DB_RADIO, 'w') as outfile:
@@ -195,12 +197,17 @@ class Bot(discord.Client):
                     except KeyError:
                         self.radioLSPD = 000.0
                     try:
+                        self.radioBCMS = data["BCMS"]
+                    except KeyError:
+                        self.radioBCMS = 000.0
+                    try:
                         self.radioEvent = data["Event"]
                     except KeyError:
                         self.radioEvent = 0
             except (json.decoder.JSONDecodeError, FileNotFoundError):
                 self.radioLSMS = 000.0
                 self.radioLSPD = 000.0
+                self.radioBCMS = 000.0
                 self.radioEvent = 0
                 
             await self.updateRadio()
@@ -425,6 +432,7 @@ class Bot(discord.Client):
         embedVar.set_thumbnail(url = IMG_RADIO)
         embedVar.add_field(name="💉", value=self.radioLSMS, inline=True)
         embedVar.add_field(name="👮", value=self.radioLSPD, inline=True)
+        embedVar.add_field(name="⛑️", value=self.radioBCMS, inline=True)
         if(self.radioEvent != "0" and self.radioEvent != 0):
             embedVar.add_field(name="🏆", value=self.radioEvent, inline=True)
         if self.message_dispatch == 0:
@@ -586,6 +594,7 @@ class Bot(discord.Client):
             data = {}
             data["LSMS"] = self.radioLSMS
             data["LSPD"] = self.radioLSPD
+            data["BCMS"] = self.radioBCMS
             data["Event"] = self.radioEvent
             with open(DB_RADIO, 'w') as outfile:
                 json.dump(data, outfile)
@@ -624,8 +633,11 @@ bot = Bot()
             "name": "2-LSPD",
             "value": 2
             },{
-            "name": "3-Event",
-            "value": 3}]
+            "name": "3-BCMS",
+            "value": 3
+            },{
+            "name": "4-Event",
+            "value": 4}]
     },{
         "name": "frequence",
         "description": "Fréquence radio",
@@ -648,6 +660,8 @@ async def _radio(ctx: SlashContext, organisme: int, frequence: str):
         elif(organisme == 2):
             bot.radioLSPD = frequence
         elif(organisme == 3):
+            bot.radioBCMS = frequence
+        elif(organisme == 4):
             bot.radioEvent = frequence        
         await bot.updateRadio()
         await ctx.send(content="Modification des radios effectuée.", hidden=True)
