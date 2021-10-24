@@ -63,7 +63,7 @@ class Bot(discord.Client):
 
     radioLSMS = 000.0
     radioLSPD = 000.0
-    radioBCMS = 000.0
+    radioBCMS = 0
     radioEvent = 0
     beds = []
 
@@ -128,7 +128,7 @@ class Bot(discord.Client):
                     await self.message_dispatch.add_reaction("🎙️")
                     self.radioLSMS = 000.0
                     self.radioLSPD = 000.0
-                    self.radioBCMS = 000.0
+                    self.radioBCMS = 0
                     self.radioEvent = 0
                     data = {}
                     with open(DB_RADIO, 'w') as outfile:
@@ -199,7 +199,7 @@ class Bot(discord.Client):
                     try:
                         self.radioBCMS = data["BCMS"]
                     except KeyError:
-                        self.radioBCMS = 000.0
+                        self.radioBCMS = 0
                     try:
                         self.radioEvent = data["Event"]
                     except KeyError:
@@ -207,7 +207,7 @@ class Bot(discord.Client):
             except (json.decoder.JSONDecodeError, FileNotFoundError):
                 self.radioLSMS = 000.0
                 self.radioLSPD = 000.0
-                self.radioBCMS = 000.0
+                self.radioBCMS = 0
                 self.radioEvent = 0
                 
             await self.updateRadio()
