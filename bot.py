@@ -432,7 +432,9 @@ class Bot(discord.Client):
         embedVar.set_thumbnail(url = IMG_RADIO)
         embedVar.add_field(name="💉", value=self.radioLSMS, inline=True)
         embedVar.add_field(name="👮", value=self.radioLSPD, inline=True)
-        embedVar.add_field(name="⛑️", value=self.radioBCMS, inline=True)
+#        embedVar.add_field(name="⛑️", value=self.radioBCMS, inline=True)
+        if(self.radioBCMS != "0" and self.radioBCMS != 0):
+            embedVar.add_field(name="⛑️", value=self.radioBCMS, inline=True)
         if(self.radioEvent != "0" and self.radioEvent != 0):
             embedVar.add_field(name="🏆", value=self.radioEvent, inline=True)
         if self.message_dispatch == 0:
