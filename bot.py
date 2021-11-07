@@ -114,7 +114,7 @@ class Bot(discord.Client):
             now = datetime.now().time()
             if(self.PDSEnabled):
                 await self.setRichPresence()
-                if(now.hour == 6 and now.minute == 0):            
+                if(now.hour == 5 and now.minute == 59):            
                     for member in self.channelPDS.guild.members:
                         if self.roleService in member.roles:
                             await self.setService(member, False, True)
@@ -135,7 +135,7 @@ class Bot(discord.Client):
                         json.dump(data, outfile)
                     await self.updateRadio()
             if(self.BedsEnabled):
-                if(now.hour == 6 and now.minute == 0):
+                if(now.hour == 5 and now.minute == 59):
                     self.SaveToFile()
 
     async def on_disconnect(self):
