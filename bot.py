@@ -815,11 +815,18 @@ async def _new(ctx: SlashContext, nom: str):
             {
             "name": "Chirurgie",
             "value": 2
+            },{
+        "name": "lspd",
+        "description": "Médecine Générale",
+        "type": 4,
+        "choices": [{
+            "name": "Oui",
+            "value": 1
+            },{
+            "name": "Non",
+            "value": 0
+            }]
             }
-            # ,{
-            # "name": "Formation 1er Secours",
-            # "value": 3
-            # }
             ]
     },{
         "name": "description",
