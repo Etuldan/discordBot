@@ -405,6 +405,7 @@ class Bot(discord.Client):
         embedVar.add_field(name="Patient", value=patient, inline=True)
         embedVar.add_field(name="Téléphone", value=phone, inline=True)
         embedVar.add_field(name="Raison", value=reason, inline=False)
+        embedVar.add_field(name="Médecine Générale", value=reason, inline=False)
         embedVar.set_footer(text=medic.display_name)        
         if(category == 1):
             await self.channelRDVPsy.send(embed=embedVar)
@@ -815,8 +816,9 @@ async def _new(ctx: SlashContext, nom: str):
             {
             "name": "Chirurgie",
             "value": 2
-            },{
-        "name": "lspd",
+            }]
+    },{
+        "name": "Médecine Générale",
         "description": "Médecine Générale",
         "type": 4,
         "choices": [{
@@ -826,13 +828,6 @@ async def _new(ctx: SlashContext, nom: str):
             "name": "Non",
             "value": 0
             }]
-            }
-            ]
-    },{
-        "name": "description",
-        "description": "Besoin du patient",
-        "type": 3,
-        "required": True
     }],
     guild_ids=guild_ids)
 async def _rdv(ctx: SlashContext, nom: str, numero: str, categorie: int, description: str ):
