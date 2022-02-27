@@ -822,6 +822,7 @@ async def _new(ctx: SlashContext, nom: str):
         "description": "Médecine Générale",
         "type": 4,
         "choices": [{
+            "required": True,
             "name": "Oui",
             "value": 1
             },{
