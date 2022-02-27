@@ -399,12 +399,12 @@ class Bot(discord.Client):
         await temp.send(" - Enseignement")
         await temp.send(" - Spéciale")   
     
-    async def AddRDV(self, patient, phone, category, reason, medic):
+    async def AddRDV(self, patient, phone, category, reason, medecine, medic):
         embedVar = discord.Embed(color=COLOR_GREEN)
         embedVar.set_author(name="Prise de RDV", icon_url=IMG_LSMS_SCEAU)
         embedVar.add_field(name="Patient", value=patient, inline=True)
         embedVar.add_field(name="Téléphone", value=phone, inline=True)
-        embedVar.add_field(name="Médecine Générale", value=reason, inline=True)
+        embedVar.add_field(name="Médecine Générale", value=medecine, inline=True)
         embedVar.add_field(name="Raison", value=reason, inline=False)
         embedVar.set_footer(text=medic.display_name)        
         if(category == 1):
