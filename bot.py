@@ -825,7 +825,7 @@ async def _new(ctx: SlashContext, nom: str):
             "value": 1
             },{
             "name": "Non",
-            "value": 2
+            "value": 0
             }] 
     },{
         "name": "description",
