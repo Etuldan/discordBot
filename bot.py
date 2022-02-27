@@ -399,12 +399,13 @@ class Bot(discord.Client):
         await temp.send(" - Enseignement")
         await temp.send(" - Spéciale")   
     
-    async def AddRDV(self, patient, phone, category, reason, medic):
+    async def AddRDV(self, patient, phone, category, reason, medecine, medic):
         embedVar = discord.Embed(color=COLOR_GREEN)
         embedVar.set_author(name="Prise de RDV", icon_url=IMG_LSMS_SCEAU)
         embedVar.add_field(name="Patient", value=patient, inline=True)
         embedVar.add_field(name="Téléphone", value=phone, inline=True)
         embedVar.add_field(name="Raison", value=reason, inline=False)
+        embedVar.add_field(name="Médecine Générale", value=medecine, inline=False)        
         embedVar.set_footer(text=medic.display_name)        
         if(category == 1):
             await self.channelRDVPsy.send(embed=embedVar)
@@ -807,19 +808,33 @@ async def _new(ctx: SlashContext, nom: str):
         "description": "Type de rendez-vous",
         "type": 4,
         "required": True,
-        "choices": [
-            {
+        "choices": [{
             "name": "Psychologie",
             "value": 1
-            },
-            {
+            },{
             "name": "Chirurgie",
             "value": 2
-            }]
-
+            }]    
+    },{
+        "name": "medecine",
+        "description": "Médecine Générale",
+        "type": 4,
+        "required": True,
+        "choices": [{
+            "name": "Oui",
+            "value": 1
+            },{
+            "name": "Non",
+            "value": 2
+            }] 
+    },{
+        "name": "description",
+        "description": "Besoin du patient",
+        "type": 3,
+        "required": True
     }],
     guild_ids=guild_ids)
-async def _rdv(ctx: SlashContext, nom: str, numero: str, categorie: int, description: str ):
+async def _rdv(ctx: SlashContext, nom: str, numero: str, categorie: int, medecine, description: str ):
     await ctx.defer(hidden=True)
     authorized = False
     if bot.roleLSMS in ctx.author.roles:
@@ -829,7 +844,7 @@ async def _rdv(ctx: SlashContext, nom: str, numero: str, categorie: int, descrip
            authorized = True
 
     if authorized:
-        await bot.AddRDV(nom, numero, categorie, description, ctx.author)
+        await bot.AddRDV(nom, numero, categorie, medecine, description, ctx.author)
         await ctx.send(content="Création d'un nouveau RDV.", hidden=True)
     else:
         await ctx.send(content="Echec de création de RDV !", hidden=True)
