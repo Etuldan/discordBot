@@ -404,7 +404,7 @@ class Bot(discord.Client):
         embedVar.set_author(name="Prise de RDV", icon_url=IMG_LSMS_SCEAU)
         embedVar.add_field(name="Patient", value=patient, inline=True)
         embedVar.add_field(name="Téléphone", value=phone, inline=True)
-        embedVar.add_field(name="Médecine Générale", value=medecine, inline=False)         
+        embedVar.add_field(name="Médecine Générale", value=medecine, inline=True)         
         embedVar.add_field(name="Raison", value=reason, inline=False)
         embedVar.set_footer(text=medic.display_name)        
         if(category == 1):
@@ -825,7 +825,7 @@ async def _new(ctx: SlashContext, nom: str):
             "value": 1
             },{
             "name": "Non",
-            "value": 0
+            "value": 2
             }] 
     },{
         "name": "description",
