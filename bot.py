@@ -404,8 +404,8 @@ class Bot(discord.Client):
         embedVar.set_author(name="Prise de RDV", icon_url=IMG_LSMS_SCEAU)
         embedVar.add_field(name="Patient", value=patient, inline=True)
         embedVar.add_field(name="Téléphone", value=phone, inline=True)
+        embedVar.add_field(name="Médecine Générale", value=reason, inline=True)
         embedVar.add_field(name="Raison", value=reason, inline=False)
-        embedVar.add_field(name="Médecine Générale", value=reason, inline=False)
         embedVar.set_footer(text=medic.display_name)        
         if(category == 1):
             await self.channelRDVPsy.send(embed=embedVar)
@@ -830,8 +830,8 @@ async def _new(ctx: SlashContext, nom: str):
             }]
     }],
     guild_ids=guild_ids)
-async def _rdv(ctx: SlashContext, nom: str, numero: str, categorie: int, description: str ):
-    await ctx.defer(hidden=True)   
+async def _rdv(ctx: SlashContext, nom: str, numero: str, categorie: int, médecine: int, description: str ):
+    await ctx.defer(hidden=True)
     authorized = False
     if bot.roleLSMS in ctx.author.roles:
         authorized = True
@@ -840,7 +840,7 @@ async def _rdv(ctx: SlashContext, nom: str, numero: str, categorie: int, descrip
            authorized = True
 
     if authorized:
-        await bot.AddRDV(nom, numero, categorie, description, ctx.author)
+        await bot.AddRDV(nom, numero, categorie, médecine, description, ctx.author)
         await ctx.send(content="Création d'un nouveau RDV.", hidden=True)
     else:
         await ctx.send(content="Echec de création de RDV !", hidden=True)
