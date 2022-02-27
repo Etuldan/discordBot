@@ -826,9 +826,10 @@ async def _new(ctx: SlashContext, nom: str):
             {
             "name": "Oui",
             "value": 1
-            },{
+            },
+            {
             "name": "Non",
-            "value": 0
+            "value": 2
             }]
     }],
     guild_ids=guild_ids)
