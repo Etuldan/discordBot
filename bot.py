@@ -833,7 +833,7 @@ async def _new(ctx: SlashContext, nom: str):
             }]
     }],
     guild_ids=guild_ids)
-async def _rdv(ctx: SlashContext, nom: str, numero: str, categorie: int, medecine: int, description: str ):
+async def _rdv(ctx: SlashContext, nom: str, numero: str, categorie: int, description: str, medecine: int ):
     await ctx.defer(hidden=True)
     authorized = False
     if bot.roleLSMS in ctx.author.roles:
