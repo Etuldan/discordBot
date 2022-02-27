@@ -403,8 +403,7 @@ class Bot(discord.Client):
         embedVar = discord.Embed(color=COLOR_GREEN)
         embedVar.set_author(name="Prise de RDV", icon_url=IMG_LSMS_SCEAU)
         embedVar.add_field(name="Patient", value=patient, inline=True)
-        embedVar.add_field(name="Téléphone", value=phone, inline=True)
-        #embedVar.add_field(name="Médecine Générale", value=medecine, inline=True)         
+        embedVar.add_field(name="Téléphone", value=phone, inline=True)       
         embedVar.add_field(name="Raison", value=reason, inline=False)
         embedVar.set_footer(text=medic.display_name)        
         if(category == 1):
@@ -815,19 +814,7 @@ async def _new(ctx: SlashContext, nom: str):
             "name": "Chirurgie",
             "value": 2
             }]    
-    },#{
-#        "name": "medecine",
-#        "description": "Médecine Générale",
-#        "type": 4,
-#        "required": True,
-#        "choices": [{
-#            "name": "Oui",
-#            "value": 1
-#            },{
-#            "name": "Non",
-#            "value": 2
-#            }] 
-    #},
+    },
     {
         "name": "description",
         "description": "Besoin du patient",
@@ -835,7 +822,7 @@ async def _new(ctx: SlashContext, nom: str):
         "required": True
     }],
     guild_ids=guild_ids)
-async def _rdv(ctx: SlashContext, nom: str, numero: str, categorie: int, description: str):#, medecine: int=0, ):
+async def _rdv(ctx: SlashContext, nom: str, numero: str, categorie: int, description: str):
     await ctx.defer(hidden=True)
     authorized = False
     if bot.roleLSMS in ctx.author.roles:
