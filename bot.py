@@ -806,7 +806,7 @@ async def _new(ctx: SlashContext, nom: str):
     },{
         "name": "categorie",
         "description": "Type de rendez-vous",
-        "type": 4,
+        "type": 3,
         "required": True,
         "choices": [{
             "name": "Psychologie",
@@ -819,7 +819,7 @@ async def _new(ctx: SlashContext, nom: str):
         "name": "medecine",
         "description": "Médecine Générale",
         "type": 4,
-        "required": True,
+        "required": False,
         "choices": [{
             "name": "Oui",
             "value": 1
