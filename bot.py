@@ -818,7 +818,7 @@ async def _new(ctx: SlashContext, nom: str):
             "value": 2
             }]
     },{
-        "name": "Médecine Générale",
+        "name": "medecine",
         "description": "Médecine Générale",
         "type": 4,
         "choices": [{
@@ -831,7 +831,7 @@ async def _new(ctx: SlashContext, nom: str):
             }]
     }],
     guild_ids=guild_ids)
-async def _rdv(ctx: SlashContext, nom: str, numero: str, categorie: int, médecine: int, description: str ):
+async def _rdv(ctx: SlashContext, nom: str, numero: str, categorie: int, medecine: int, description: str ):
     await ctx.defer(hidden=True)
     authorized = False
     if bot.roleLSMS in ctx.author.roles:
@@ -841,7 +841,7 @@ async def _rdv(ctx: SlashContext, nom: str, numero: str, categorie: int, médeci
            authorized = True
 
     if authorized:
-        await bot.AddRDV(nom, numero, categorie, médecine, description, ctx.author)
+        await bot.AddRDV(nom, numero, categorie, medecine, description, ctx.author)
         await ctx.send(content="Création d'un nouveau RDV.", hidden=True)
     else:
         await ctx.send(content="Echec de création de RDV !", hidden=True)
